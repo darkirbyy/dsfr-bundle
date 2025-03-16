@@ -1,5 +1,5 @@
 {#
-    Le fichier qui inclut dtatable doit définir les variables suivantes :
+    Le fichier qui inclut datatable doit définir les variables suivantes :
 
     - objects: array (OBLIGATOIRE) doit contenir tous les lignes de la table sous la forme d'un array d'objet
 
@@ -49,10 +49,10 @@
         { property: 'action_column', label: 'Actions', custom: true },
     ] %}
 
-    {{ include('datatable.html.twig') }}
+    {{ include('@DarkirbyDsfr/component/datatable.html.twig') }}
 #}
 
-{% from '_macro.html.twig' import attribute_deep %}
+{% from '@DarkirbyDsfr/component/macro.html.twig' import attribute_deep %}
 
 <div class="bundle-datatable" data-controller="datatable" data-datatable-options-value="{{ datatableOptions|default({ paging: true })|json_encode }}">
     {% if datatableOptions.searching ?? true %}

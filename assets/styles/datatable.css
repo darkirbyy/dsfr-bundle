@@ -74,8 +74,8 @@
     height: var(--icon-size);
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
-    -webkit-mask-image: url("../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
-    mask-image: url("../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
+    -webkit-mask-image: url("../../../../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
+    mask-image: url("../../../../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
     content: "";
     transition: transform 0.3s;
   }
