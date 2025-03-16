@@ -1,0 +1,12 @@
+{
+    "name": "darkirby/dsfr-bundle",
+    "description": "Bundle contenant des ressources utiles pour un projet DSFR",
+    "type": "symfony-bundle",
+    "license": "UNLICENSED",
+    "autoload": {
+        "psr-4": {
+            "Darkirby\\DsfrBundle\\": "src/"
+        }
+    },
+    "require": {}
+}
