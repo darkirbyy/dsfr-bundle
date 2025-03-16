@@ -1,0 +1,99 @@
+.bundle-datatable .fr-table{
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .bundle-datatable .fr-table__container{
+    overflow: initial;
+  }
+  
+  .bundle-datatable .fr-search-bar{
+    width: 33%;
+    max-width: 30rem;
+  }
+  
+  .bundle-datatable .fr-cell__title{
+    flex:1;
+  }
+  
+  .bundle-datatable .fr-btn--sort{
+    margin-left: 0.5rem !important;
+  }
+  
+  .bundle-datatable .app-filter{
+    position: relative;
+  }
+  
+  .bundle-datatable .app-filter fieldset{
+    transform: translateX(calc(2rem - 100%));
+    position: absolute;
+    margin: 0rem;
+    padding: 0.5rem;
+    z-index: 10;
+    max-height: 11.5rem;
+    overflow: auto;
+  }
+  
+  .bundle-datatable .app-filter fieldset .fr-fieldset__element{
+    margin: 0.25rem 0;
+  }
+  
+  .bundle-datatable .app-filter fieldset label{
+    font-weight: 400;
+    color: var(--text-default-grey) !important;
+    font-size: .875rem;
+    line-height: 1.5rem;
+  }
+  
+  .bundle-datatable .app-filter button{
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.75rem;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 2rem;
+    max-height: 2rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    background-color: transparent;
+    --hover: inherit;
+    --active: inherit;
+    color: var(--text-action-high-blue-france);
+    box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  }
+  
+  .bundle-datatable .app-filter button::before {
+    --icon-size: 1rem;
+    margin-left: 0;
+    margin-right: 0.5rem;
+    flex: 0 0 auto;
+    display: inline-block;
+    vertical-align: calc((0.75em - var(--icon-size)) * 0.5);
+    background-color: currentColor;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-image: url("../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
+    mask-image: url("../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
+    content: "";
+    transition: transform 0.3s;
+  }
+  
+  .bundle-datatable .app-filter button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .bundle-datatable .app-filter button:active{
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .bundle-datatable .app-filter button:disabled {
+    color: var(--text-disabled-grey);
+    box-shadow: inset 0 0 0 1px var(--border-disabled-grey);
+    background-color: transparent;
+  
+    --hover: inherit;
+    --active: inherit;
+  }
+  

@@ -1,0 +1,244 @@
+{#
+    Le fichier qui inclut dtatable doit définir les variables suivantes :
+
+    - objects: array (OBLIGATOIRE) doit contenir tous les lignes de la table sous la forme d'un array d'objet
+
+    - customFilePath: string (optionnel) chemin du ficher twig qui contient les blocks customs (voir plus bas)
+
+    - datatableOptions qui définit les options globales du tableau. Il peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
+        - paging: bool (optionnel, défaut true) Active ou non la pagination
+        - pagingLength: int (optionnel, défaut 50) Nombre de lignes par page
+        - searching: bool (optionnel, défaut true) Active ou non la zone de recherche
+        - searchingLive: bool (optionnel, défaut true) Active ou non la recherche live, dès que l'utilisateur tape dans la zone de recherche
+        - searchingLiveDelay: int (optionnel, défaut true) Délai en millisecondes avant de déclencher une recherche live
+
+    - datatableColumns est un array d'array, dont chaque élement définit une colonne du tableau. Chaque ligne peut contenir les clés suivantes :
+        - property: string (OBLIGATOIRE) quelle propriété de l'objet doit être affichée. Peut être une sous propriété (exemple adresse.ville).
+        - label: string (OBLIGATOIRE) nom de la colonne à afficher dans l'en-tête.
+        - visible: bool (optionnel, défaut false) la colonne doit-elle être visible ?
+        - searchable: bool (optionnel, défaut false) la colonne doit-elle être cherchable ?
+        - searchProperty: string (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour la recherche (exemple identite.nomComplet si on utilise on nom abrégé pour l'affichage)
+        - sortable: bool (optionnel, défaut false) la colonne doit-elle être triable ?
+        - sortProperty: string (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le tri (exemple date.timestamp si on formate la date autrement)
+        - sortInit: asc|desc|none (optionnel, défaut none) la colonne doit-elle être triée par défaut ? Attention, ne doit être placer que sur une seule colonne
+        - filtrable: bool (optionnel, défaut false) la colonne doit-elle être filtrable ?
+        - filterChoices: array[string] (OBLIGATOIRE si filtrable est vrai) les différents choix de filtrage
+        - filterType: checkbox|radio (optionnel, défaut checkbox) filtrage avec choix unique (radio buttons) ou multiple (checbox buttons)
+        - filterInit: array[string] (optionnel, défaut []) état initial du filtrage, dépend de filterType:
+            - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
+            - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
+        - custom: bool (optionnel, défaut false) dans ce cas, toutes les autres options sont ignorées et property est le nom du block à insérer, qui a accès à l'objet de la ligne courante dans la variable object
+
+    Exemple :
+
+    {% set objects = personnes %}
+
+    {% set datatableOptions = {
+        paging: true,
+        pagingLength: 30,
+        searching: true,
+        searchingLive: false,
+    } %}
+
+    {% set datatableColumns = [
+        { property: 'lieu.nom', label: 'Lieu', sortable: true },
+        { property: 'nom', label: 'Nom', searchable: true, sortable: true, sortInit: 'asc' },
+        { property: 'prenom', label: 'Prénom', searchable: true, sortable: true },
+        { property: 'dateNaissanceFormat', label: 'Date de naissance', sortable: true, sortProperty: 'dateNaissance.timestamp' },
+        { property: 'statut.toString', label: 'Statut', filtrable: true, filterChoices: ['En cours', 'Attente', 'Fini'], filterType: 'radio' },
+        { property: 'action_column', label: 'Actions', custom: true },
+    ] %}
+
+    {{ include('datatable.html.twig') }}
+#}
+
+{% from '_macro.html.twig' import attribute_deep %}
+
+<div class="bundle-datatable" data-controller="datatable" data-datatable-options-value="{{ datatableOptions|default({ paging: true })|json_encode }}">
+    {% if datatableOptions.searching ?? true %}
+    {% set searchableProperties = datatableColumns|filter(column => column.searchable ?? true)|map(column => column.label|lower)|join(' - ') %}
+    <div class="fr-search-bar" role="search">
+        <label class="fr-label" for="datatable-search">
+            Recherche sur {{ searchableProperties }}
+        </label>
+        <input class="fr-input" data-datatable-target="searchInput" placeholder="Recherche sur {{ searchableProperties }}"
+            type="search" name="datatable-search">
+        <button class="fr-btn" data-datatable-target="searchButton" title="Rechercher">
+            Rechercher
+        </button>
+    </div>
+    {% endif %}
+    <div class="fr-table fr-table--bordered">
+        <div class="fr-table__wrapper">
+            <div class="fr-table__container">
+                <div class="fr-table__content">
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for column in datatableColumns %}
+                                {% set target = (column.visible ?? true ? 'visible')
+                                            ~ (column.searchable ?? false ? ' searchable')
+                                            ~ (column.sortable ?? false ? ' sortable')
+                                            ~ (column.filtrable ?? false ? ' filtrable')
+                                %}
+                                {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
+                                <th data-datatable-column="{{ loop.index0 }}"
+                                    data-datatable-target="{{ target }}"
+                                    {% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
+                                        data-datatable-sort-init="{{ column.sortInit }}"
+                                    {% endif %}
+                                >
+                                    <div class="fr-cell--sort">
+                                        {# Libellé de la colonne #}
+                                        <span class="fr-cell__title">{{ column.label }}</span>
+
+                                        {# Bouton + menu pour une colonne filtrable #}
+                                        {% if column.filtrable ?? false %}
+                                            {% set filterId = 'datatable-filter-' ~ loop.index0 %}
+                                            <div class="app-filter">
+                                                {# Bouton pour afficher/cacher le menu contenant les filtres #}
+                                                <button type="button" id="{{ filterId }}" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
+                                                    Filtrer par {{ column.label|lower }}
+                                                </button>
+                                                <fieldset class="fr-fieldset fr-card--shadow fr-hidden"
+                                                    aria-labelledby="{{ filterId }}" role="menu">
+
+                                                    {# Détermine le type de filtre et les valeurs initialement cochées #}
+                                                    {% set filterType = column.filterType is defined and column.filterType in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
+                                                    {% set filterInit = column.filterInit is defined ? column.filterInit : [] %}
+                                                    {% if filterType == 'radio' and filterInit is empty %}
+                                                        {% set filterInit = [(column.filterChoices|first)] %}
+                                                    {% endif %}
+
+                                                    {# Génère les différentes options du filtres selon filterChoices,  en radio ou checkbox selon filterType, et préselectionne certaines selon filterInit #}
+                                                    {% for filterChoice in column.filterChoices %}
+                                                        {% set filterChoiceId = filterId ~ '-' ~ loop.index0 %}
+                                                        <div class="fr-fieldset__element">
+                                                            <div class="fr-{{ filterType }}-group fr-{{ filterType }}-group--sm">
+                                                                <input name="{{ filterId }}" id="{{ filterChoiceId }}"
+                                                                    type="{{ filterType }}" data-datatable-value="{{ filterChoice }}"
+                                                                    {% if filterType == 'checkbox' %}
+                                                                        {{ filterChoice not in filterInit ? 'checked' }}
+                                                                    {% else %}
+                                                                        {{ filterChoice in filterInit ? 'checked' }}
+                                                                    {% endif %}
+                                                                >
+                                                                <label class="fr-label" for="{{ filterChoiceId }}">
+                                                                    {{ filterChoice is not empty ? filterChoice : '<em>Vide</em>' }}
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </fieldset>
+                                            </div>
+                                        {% endif %}
+
+                                        {# Bouton + menu pour une colonne triable #}
+                                        {% if column.sortable ?? false %}
+                                            {% set sortId = 'datatable-sort-' ~ loop.index0 %}
+                                            <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" id="{{ sortId }}">
+                                                Trier par {{ column.label|lower }}
+                                            </button>
+                                        {% endif %}
+
+                                    </div>
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {# Une nouvelle ligne pour chaque objet #}
+                            {% for object in objects %}
+                            <tr data-row-key="{{ loop.index }}">
+                                {% for column in datatableColumns %}
+                                    {% if column.custom|default(false) %}
+                                        <td>
+                                            {% with { path: customFilePath, block: column.property, object: object } only %}
+                                            {{ block(block, path) }}
+                                            {% endwith %}
+                                        </td>
+                                    {% else %}
+                                        <td
+                                        {# Valeur utilisée pour le tri #}
+                                        {% if column.sortable and column.sortProperty is defined %}
+                                            data-order="{{ attribute_deep(object, column.sortProperty)|trim }}"
+                                        {% endif %}
+                                        {# Valeur utilisée pour le filtrage et/ou la recherche #}
+                                        {% if column.filtrable or column.searchProperty is defined %}
+                                            data-search="{{ attribute_deep(object, column.searchProperty|default(column.property))|trim }}"
+                                        {% endif %}
+                                        >
+                                        {# Valeur affichée #}
+                                                {{ attribute_deep(object, column.property)|trim }}
+                                        </td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fr-grid-row">
+        <div class="fr-my-1v fr-mx-3v fr-text--sm" data-datatable-target="records">
+            {{ objects|length ~ ' ligne' ~ (objects|length > 1 ? 's') }}
+        </div>
+        {% if datatableOptions.paging ?? true %}
+        <nav role="navigation" class="fr-pagination fr-col" aria-label="Pagination">
+            <ul class="fr-pagination__list">
+                <li>
+                    <a class="fr-pagination__link fr-pagination__link--first" role="link"
+                        data-datatable-target="pageFirst">
+                        Première page
+                    </a>
+                </li>
+                <li>
+                    <a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label" role="link"
+                        data-datatable-target="pagePrev">
+                        Page précédente
+                    </a>
+                </li>
+                <li>
+                    <span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisBefore">
+                        …
+                    </span>
+                </li>
+                <li>
+                    <a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageBefore">
+                        n-1
+                    </a>
+                </li>
+                <li>
+                    <a class="fr-pagination__link " data-datatable-target="pageCurrent" aria-current="page">
+                        n
+                    </a>
+                </li>
+                <li>
+                    <a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageAfter">
+                        n+1
+                    </a>
+                </li>
+                <li>
+                    <span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisAfter">
+                        …
+                    </span>
+                </li>
+                <li>
+                    <a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--lg-label"
+                        data-datatable-target="pageNext">
+                        Page suivante
+                    </a>
+                </li>
+                <li>
+                    <a class="fr-pagination__link fr-pagination__link--last" data-datatable-target="pageLast">
+                        Dernière page
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
