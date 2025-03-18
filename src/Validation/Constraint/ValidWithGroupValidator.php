@@ -16,7 +16,7 @@ class ValidWithGroupValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, __NAMESPACE__ . '\ValidWithGroup');
         }
 
-        // Ignore null values, as there is nothing to cascade validation to
+        // Si c'est null, on ignore car il n'y a aucune validation à déclencher
         if (null === $value) {
             return;
         }

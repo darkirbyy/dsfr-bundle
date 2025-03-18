@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import DataTable from 'datatables.net-dt';
 
-export default class extends Controller {
+export default class DatatableController extends Controller {
   static targets = [
     'visible',
     'searchable', 'searchInput', 'searchButton',
