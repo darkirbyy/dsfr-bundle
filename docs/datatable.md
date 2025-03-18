@@ -2,7 +2,7 @@
 
 ## Dépendances
 
-Il faut avoir ajouté datatables.net-dt à l'import-map via :
+Il faut avoir ajouté `datatables.net-dt` à l'import-map via :
 
 ```sh
 symfony console importmap:require datatables.net-dt
@@ -31,7 +31,6 @@ Pour intégrer le css et le controller stimulus au projet, ajouter les imports s
     ```
 
 ## Utilisation
-
 
 Le fichier qui inclut datatable doit définir les variables suivantes :
 
