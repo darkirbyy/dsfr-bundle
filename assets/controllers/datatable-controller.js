@@ -49,6 +49,7 @@ export default class DatatableController extends Controller {
         { visible: false, targets: '_all' }
       ],
       language: {
+        emptyTable: 'Aucune donnée à afficher',
         zeroRecords: 'Aucun résultat',
       },
     });
@@ -104,7 +105,7 @@ export default class DatatableController extends Controller {
 
     // Option: recherche en temps réel
     if (this.optionsValue['searchingLive'] ?? true) {
-      this.searchInputTarget.addEventListener('input', (event) => {
+      this.searchInputTarget.addEventListener('input', () => {
         clearTimeout(this._searchTimeout);
         this._searchTimeout = setTimeout(() => {
           this.updateSearch();
@@ -143,7 +144,7 @@ export default class DatatableController extends Controller {
       const checkboxes = fieldset.querySelectorAll('input[type]');
 
       // Affiche ou ferme le menu de filtrage quand on clique sur le bouton
-      button.addEventListener('click', (event) => {
+      button.addEventListener('click', () => {
         if (fieldset.classList.contains('fr-hidden')) {
           button.setAttribute('aria-expanded', true);
           this.showElement(fieldset);
@@ -164,7 +165,7 @@ export default class DatatableController extends Controller {
 
       // Ajout des écouteurs pour les cases à cocher
       checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', (event) => {
+        checkbox.addEventListener('change', () => {
           this.updateFilter(checkboxes, columnIndex)
           this.performRedraw();
         });
@@ -223,7 +224,7 @@ export default class DatatableController extends Controller {
   }
 
   setupPaginationListeners() {
-    if (!this.optionsValue['paging'] ?? true) {
+    if (!(this.optionsValue['paging'] ?? true)) {
       return;
     }
     //  Ajout des écouteurs pour les boutons de pagination
@@ -249,7 +250,7 @@ export default class DatatableController extends Controller {
   }
 
   updatePagination() {
-    if (!this.optionsValue['paging'] ?? true) {
+    if (!(this.optionsValue['paging'] ?? true)) {
       return;
     }
 
