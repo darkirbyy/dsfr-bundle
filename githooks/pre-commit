@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -e
+
+echo "Pre-commit hook : utilisation des linter sur les fichiers php et twig"
+
+# Vérification que composer est dans le PATH
+HAS_COMPOSER=$(which composer)
+if [ ! $HAS_COMPOSER  ]; then
+    echo "Composer n'est pas présent dans le PATH. Installer le globalement."
+    exit 1
+fi
+
+# Vérification que npm est dans le PATH
+HAS_NPM=$(which npm)
+if [ ! $HAS_NPM  ]; then
+    echo "Npm n'est pas présent dans le PATH. Installer le globalement."
+    exit 1
+fi
+
+ALL_STAGED=$(git diff --cached --name-only --diff-filter=AM)
+
+# Fonctions pour filtrer et lint un type de fichier avec une commande donnée
+lint_and_add() {
+    local pattern="$1"
+    local command="$2"
+    local files
+
+    # Filter les fichiers parpattern
+    files=$(echo "$ALL_STAGED" | grep -E "$pattern" || true)
+
+    # Pour chaque fichier qui match, exécuter la commande et ré-ajouter le fichier
+    if [ -n "$files" ]; then
+        echo "$files" | xargs -r -d '\n' npm run pretty-file
+        echo "$files" | xargs -r -d '\n' $command
+        echo "$files" | xargs -r -d '\n' git add
+    fi
+}
+
+lint_and_add '^(src|tests)/.+\.php$' "composer lint-php"
+lint_and_add '^templates/.+\.twig$' "composer lint-twig"
+lint_and_add '^assets/styles/.+\.scss$' "npm run lint-scss-file"
+lint_and_add '^assets/controllers/.+\.js$' "npm run lint-js-file"

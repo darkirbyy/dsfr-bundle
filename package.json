@@ -1,0 +1,26 @@
+{
+  "name": "dsfr-bundle",
+  "description": "Bundle contenant des ressources utiles pour un projet DSFR",
+  "private": true,
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "@prettier/plugin-php": "^0.22.4",
+    "@zackad/prettier-plugin-twig": "^0.16.0",
+    "eslint": "^9.23.0",
+    "eslint-config-prettier": "^10.1.1",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
+    "stylelint": "^16.16.0",
+    "stylelint-config-standard": "^37.0.0"
+  },
+  "scripts": {
+    "pretty-file": "prettier --write --config linter/.prettierrc.json",
+    "pretty-all": "npm run pretty-file \"src/**/*.php\" \"tests/**/*.php\" \"templates/**/*.twig\" \"assets/styles/**/*.css\" \"assets/controllers/**/*.js\"",
+    "lint-css-file": "stylelint --fix --cache --cacheLocation .cache --config linter/.stylelint.config.json",
+    "lint-js-file": "eslint --fix --cache --cache-location .cache --config linter/.eslint.config.mjs"
+  },
+  "browserslist": [
+    "defaults"
+  ]
+}

@@ -26,7 +26,7 @@
 .datatable .app-filter fieldset {
   transform: translateX(calc(2rem - 100%));
   position: absolute;
-  margin: 0rem;
+  margin: 0;
   padding: 0.5rem;
   z-index: 10;
   max-height: 12rem;
@@ -40,7 +40,7 @@
 .datatable .app-filter fieldset label {
   font-weight: 400;
   color: var(--text-default-grey) !important;
-  font-size: .875rem;
+  font-size: 0.875rem;
   line-height: 1.5rem;
 }
 
@@ -56,36 +56,37 @@
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   background-color: transparent;
+
   --hover: inherit;
   --active: inherit;
+
   color: var(--text-action-high-blue-france);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
 }
 
 .datatable .app-filter button::before {
   --icon-size: 1rem;
+
   margin-left: 0;
   margin-right: 0.5rem;
   flex: 0 0 auto;
   display: inline-block;
   vertical-align: calc((0.75em - var(--icon-size)) * 0.5);
-  background-color: currentColor;
+  background-color: currentcolor;
   width: var(--icon-size);
   height: var(--icon-size);
-  -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
-  -webkit-mask-image: url("../../../../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
-  mask-image: url("../../../../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg");
-  content: "";
+  mask-image: url('../../../../../node_modules/@gouvfr/dsfr/dist/icons/system/filter-line.svg');
+  content: '';
   transition: transform 0.3s;
 }
 
 .datatable .app-filter button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgb(0 0 0 / 5%);
 }
 
 .datatable .app-filter button:active {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgb(0 0 0 / 10%);
 }
 
 .datatable .app-filter button:disabled {

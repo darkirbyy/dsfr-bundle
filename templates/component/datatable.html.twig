@@ -1,190 +1,146 @@
 {% from '@DarkirbyDsfr/component/macro.html.twig' import attribute_deep %}
 
 <div class="datatable" data-controller="datatable" data-datatable-options-value="{{ datatableOptions|default({ paging: true })|json_encode }}">
-	{% if datatableOptions.searching ?? true %}
-		{% set searchableProperties = datatableColumns|filter(column => column.searchable ?? false)|map(column =>
-    column.label|lower)|join(' - ') %}
-		<div class="fr-search-bar" role="search">
-			<label class="fr-label" for="datatable-search">
-				Recherche sur
-				{{ searchableProperties }}
-			</label>
-			<input class="fr-input" data-datatable-target="searchInput" placeholder="Recherche sur {{ searchableProperties }}" type="search" name="datatable-search">
-			<button class="fr-btn" data-datatable-target="searchButton" title="Rechercher">
-				Rechercher
-			</button>
-		</div>
-	{% endif %}
-	<div class="fr-table fr-table--bordered">
-		<div class="fr-table__wrapper">
-			<div class="fr-table__container">
-				<div class="fr-table__content">
-					<table>
-						<thead>
-							<tr>
-								{% for column in datatableColumns %}
-									{% set target = (column.visible ?? true ? 'visible')
-                                ~ (column.searchable ?? false ? ' searchable')
-                                ~ (column.sortable ?? false ? ' sortable')
-                                ~ (column.filtrable ?? false ? ' filtrable')
-                                %}
-									{# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la
-									                                column et le tri initial selon sortInit #}
-									<th data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}" {% if column.sortInit is defined and column.sortInit in ['asc', 'desc' ] %} data-datatable-sort-init="{{ column.sortInit }}" {% endif %}>
-										<div
-											class="fr-cell--sort">
-											{# Libellé de la colonne #}
-											<span class="fr-cell__title">{{ column.label }}</span>
+  {% if datatableOptions.searching ?? true %}
+    {% set searchableProperties = datatableColumns|filter(column => column.searchable ?? false)|map(column => column.label|lower)|join(' - ') %}
+    <div class="fr-search-bar" role="search">
+      <label class="fr-label" for="datatable-search">
+        Recherche sur
+        {{ searchableProperties }}
+      </label>
+      <input class="fr-input" data-datatable-target="searchInput" placeholder="Recherche sur {{ searchableProperties }}" type="search" name="datatable-search" />
+      <button class="fr-btn" data-datatable-target="searchButton" title="Rechercher">Rechercher</button>
+    </div>
+  {% endif %}
+  <div class="fr-table fr-table--bordered">
+    <div class="fr-table__wrapper">
+      <div class="fr-table__container">
+        <div class="fr-table__content">
+          <table>
+            <thead>
+              <tr>
+                {% for column in datatableColumns %}
+                  {% set target = (column.visible ?? true ? 'visible') ~ (column.searchable ?? false ? ' searchable') ~ (column.sortable ?? false ? ' sortable')
+                    ~ (column.filtrable ?? false ? ' filtrable')
+                  %}
+                  {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
+                  <th
+                    data-datatable-column="{{ loop.index0 }}"
+                    data-datatable-target="{{ target }}"
+                    {{ column.sortInit is defined and column.sortInit in ['asc', 'desc'] ? 'data-datatable-sort-init=' ~ column.sortInit }}
+                  >
+                    <div class="fr-cell--sort">
+                      {# Libellé de la colonne #}
+                      <span class="fr-cell__title">{{ column.label }}</span>
 
-											{# Bouton + menu pour une colonne filtrable #}
-											{% if column.filtrable ?? false %}
-												{% set filterId = 'datatable-filter-' ~ loop.index0 %}
-												<div
-													class="app-filter">
-													{# Bouton pour afficher/cacher le menu contenant les filtres #}
-													<button type="button" id="{{ filterId }}" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
-														Filtrer par
-														{{ column.label|lower }}
-													</button>
-													<fieldset
-														class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" role="menu">
+                      {# Bouton + menu pour une colonne filtrable #}
+                      {% if column.filtrable ?? false %}
+                        {% set filterId = 'datatable-filter-' ~ loop.index0 %}
+                        <div class="app-filter">
+                          {# Bouton pour afficher/cacher le menu contenant les filtres #}
+                          <button type="button" id="{{ filterId }}" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
+                            Filtrer par
+                            {{ column.label|lower }}
+                          </button>
+                          <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" role="menu">
+                            {# Détermine le type de filtre et les valeurs initialement cochées #}
+                            {% set filterType = column.filterType is defined and column.filterType in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
+                            {% set filterInit = column.filterInit is defined ? column.filterInit : [] %}
+                            {% if filterType == 'radio' and filterInit is empty %}
+                              {% set filterInit = [column.filterChoices|first] %}
+                            {% endif %}
 
-														{# Détermine le type de filtre et les valeurs initialement cochées #}
-														{% set filterType = column.filterType is defined and column.filterType
-                                                in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
-														{% set filterInit = column.filterInit is defined ? column.filterInit :
-                                                [] %}
-														{% if filterType == 'radio' and filterInit is empty %}
-															{% set filterInit = [(column.filterChoices|first)] %}
-														{% endif %}
+                            {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et préselectionne certaines selon filterInit #}
+                            {% for filterChoice in column.filterChoices %}
+                              {% set filterChoiceId = filterId ~ '-' ~ loop.index0 %}
+                              {% set is_checked = (filterType == 'checkbox' and filterChoice not in filterInit) or (filterType == 'radio' and filterChoice in filterInit) %}
+                              <div class="fr-fieldset__element">
+                                <div class="fr-{{ filterType }}-group fr-{{ filterType }}-group--sm">
+                                  <input
+                                    name="{{ filterId }}"
+                                    id="{{ filterChoiceId }}"
+                                    type="{{ filterType }}"
+                                    data-datatable-value="{{ filterChoice }}"
+                                    {{ is_checked ? 'checked' }}
+                                  />
+                                  <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice is not empty ? filterChoice : '<em>Vide</em>' }}</label>
+                                </div>
+                              </div>
+                            {% endfor %}
+                          </fieldset>
+                        </div>
+                      {% endif %}
 
-														{# Génère les différentes options du filtres selon filterChoices, en
-														                                                radio ou checkbox selon filterType, et préselectionne certaines selon
-														                                                filterInit #}
-														{% for filterChoice in column.filterChoices %}
-															{% set filterChoiceId = filterId ~ '-' ~ loop.index0 %}
-															<div class="fr-fieldset__element">
-																<div class="fr-{{ filterType }}-group fr-{{ filterType }}-group--sm">
-																	<input name="{{ filterId }}" id="{{ filterChoiceId }}" type="{{ filterType }}" data-datatable-value="{{ filterChoice }}" {% if filterType=='checkbox' %} {{ filterChoice not in filterInit ? 'checked' }} {% else %} {{ filterChoice in filterInit ? 'checked' }} {% endif %}>
-																	<label class="fr-label" for="{{ filterChoiceId }}">
-																		{{ filterChoice is not empty ? filterChoice :
-                                                            '<em>Vide</em>' }}
-																	</label>
-																</div>
-															</div>
-														{% endfor %}
-													</fieldset>
-												</div>
-											{% endif %}
+                      {# Bouton + menu pour une colonne triable #}
+                      {% if column.sortable ?? false %}
+                        {% set sortId = 'datatable-sort-' ~ loop.index0 %}
+                        <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" id="{{ sortId }}">
+                          Trier par
+                          {{ column.label|lower }}
+                        </button>
+                      {% endif %}
+                    </div>
+                  </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {# Une nouvelle ligne pour chaque objet #}
+              {% for object in objects %}
+                <tr data-row-key="{{ loop.index }}">
+                  {% for column in datatableColumns %}
+                    {# Valeur utilisée pour le tri #}
+                    {% if column.sortable ?? false and column.sortProperty is defined %}
+                      {% set data_order = attribute_deep(object, column.sortProperty)|trim %}
+                    {% else %}
+                      {% set data_order = null %}
+                    {% endif %}
 
-											{# Bouton + menu pour une colonne triable #}
-											{% if column.sortable ?? false %}
-												{% set sortId = 'datatable-sort-' ~ loop.index0 %}
-												<button type="button" class="fr-btn--sort fr-btn fr-btn--sm" id="{{ sortId }}">
-													Trier par
-													{{ column.label|lower }}
-												</button>
-											{% endif %}
+                    {# Valeur utilisée pour le filtrage et/ou la recherche #}
+                    {% if column.filtrable ?? false or column.searchProperty is defined %}
+                      {% set data_search = attribute_deep(object, column.searchProperty|default(column.property))|trim %}
+                    {% else %}
+                      {% set data_search = null %}
+                    {% endif %}
 
-										</div>
-									</th>
-								{% endfor %}
-							</tr>
-						</thead>
-						<tbody>
-							{# Une nouvelle ligne pour chaque objet #}
-							{% for object in objects %}
-								<tr data-row-key="{{ loop.index }}">
-									{% for column in datatableColumns %}
-										{# Valeur utilisée pour le tri #}
-										{% if column.sortable ?? false and column.sortProperty is defined %}
-											{% set data_order = attribute_deep(object, column.sortProperty)|trim %}
-										{% else %}
-											{% set data_order = null %}
-										{% endif %}
+                    {# Valeur affichée #}
+                    <td {{ data_order is not null ? 'data-order=' ~ data_order }} {{ data_search is not null ? 'data-search=' ~ data_search }}>
+                      {% if column.custom|default(false) %}
+                        {% with { path: customFilePath, block: column.property, object: object } only %}
+                        {{ block(block, path) }}
+                        {% endwith %}
+                      {% else %}
+                        {{ attribute_deep(object, column.property)|trim }}
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-										{# Valeur utilisée pour le filtrage et/ou la recherche #}
-										{% if column.filtrable ?? false or column.searchProperty is defined %}
-											{% set data_search = attribute_deep(object,
-                                column.searchProperty|default(column.property))|trim %}
-										{% else %}
-											{% set data_search = null %}
-										{% endif %}
-
-										{# Valeur affichée #}
-										<td {{ data_order is not null ? 'data-order=' ~ data_order }} {{ data_search is not null ? 'data-search=' ~ data_search }}>
-											{% if column.custom|default(false) %}
-												{% with { path: customFilePath, block: column.property, object: object } only %}
-												{{ block(block, path) }}
-												{% endwith %}
-											{% else %}
-												{{ attribute_deep(object, column.property)|trim }}
-											{% endif %}
-										</td>
-									{% endfor %}
-								</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="fr-grid-row">
-		<div class="fr-my-1v fr-mx-3v fr-text--sm" data-datatable-target="records">
-			{{ objects|length ~ ' ligne' ~ (objects|length > 1 ? 's') }}
-		</div>
-		{% if datatableOptions.paging ?? true %}
-			<nav role="navigation" class="fr-pagination fr-col" aria-label="Pagination">
-				<ul class="fr-pagination__list">
-					<li>
-						<a class="fr-pagination__link fr-pagination__link--first" role="link" data-datatable-target="pageFirst">
-							Première page
-						</a>
-					</li>
-					<li>
-						<a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label" role="link" data-datatable-target="pagePrev">
-							Page précédente
-						</a>
-					</li>
-					<li>
-						<span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisBefore">
-							…
-						</span>
-					</li>
-					<li>
-						<a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageBefore">
-							n-1
-						</a>
-					</li>
-					<li>
-						<a class="fr-pagination__link " data-datatable-target="pageCurrent" aria-current="page">
-							n
-						</a>
-					</li>
-					<li>
-						<a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageAfter">
-							n+1
-						</a>
-					</li>
-					<li>
-						<span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisAfter">
-							…
-						</span>
-					</li>
-					<li>
-						<a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--lg-label" data-datatable-target="pageNext">
-							Page suivante
-						</a>
-					</li>
-					<li>
-						<a class="fr-pagination__link fr-pagination__link--last" data-datatable-target="pageLast">
-							Dernière page
-						</a>
-					</li>
-				</ul>
-			</nav>
-		{% endif %}
-	</div>
+  <div class="fr-grid-row">
+    <div class="fr-my-1v fr-mx-3v fr-text--sm" data-datatable-target="records">
+      {{ (objects|length) ~ ' ligne' ~ ((objects|length) > 1 ? 's') }}
+    </div>
+    {% if datatableOptions.paging ?? true %}
+      <nav role="navigation" class="fr-pagination fr-col" aria-label="Pagination">
+        <ul class="fr-pagination__list">
+          <li><a class="fr-pagination__link fr-pagination__link--first" role="link" data-datatable-target="pageFirst">Première page</a></li>
+          <li><a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label" role="link" data-datatable-target="pagePrev">Page précédente</a></li>
+          <li><span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisBefore">…</span></li>
+          <li><a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageBefore">n-1</a></li>
+          <li><a class="fr-pagination__link" data-datatable-target="pageCurrent" aria-current="page">n</a></li>
+          <li><a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageAfter">n+1</a></li>
+          <li><span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisAfter">…</span></li>
+          <li><a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--lg-label" data-datatable-target="pageNext">Page suivante</a></li>
+          <li><a class="fr-pagination__link fr-pagination__link--last" data-datatable-target="pageLast">Dernière page</a></li>
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
 </div>

@@ -1,12 +1,22 @@
 {
-    "name": "darkirby/dsfr-bundle",
-    "description": "Bundle contenant des ressources utiles pour un projet DSFR",
-    "type": "symfony-bundle",
-    "license": "UNLICENSED",
-    "autoload": {
-        "psr-4": {
-            "Darkirby\\DsfrBundle\\": "src/"
-        }
-    },
-    "require": {}
+  "name": "darkirby/dsfr-bundle",
+  "description": "Bundle contenant des ressources utiles pour un projet DSFR",
+  "type": "symfony-bundle",
+  "license": "UNLICENSED",
+  "autoload": {
+    "psr-4": {
+      "Darkirby\\DsfrBundle\\": "src/"
+    }
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.73",
+    "vincentlanglet/twig-cs-fixer": "^3.5"
+  },
+  "scripts": {
+    "lint-php": "vendor/bin/php-cs-fixer fix --config=linter/.php-cs-fixer.dist.php",
+    "lint-twig": "vendor/bin/twig-cs-fixer lint --fix --config=linter/.twig-cs-fixer.dist.php",
+    "lint-css": "npm run lint-css-file \"assets/styles/**/*.css\"",
+    "lint-js": "npm run lint-js-file \"assets/controllers/**/*.js\"",
+    "lint-all": ["@lint-php", "@lint-twig", "@lint-css",  "@lint-js"]
+  }
 }

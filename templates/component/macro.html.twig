@@ -1,9 +1,9 @@
 {# Recupère une propriété imbriquée, où le path est séparé par des points. Par exemple path='adresse.ville' #}
 {% macro attribute_deep(object, path) %}
-    {% set properties = path|split('.') %}
-    {% set value = object %}
-    {% for property in properties %}
-        {% set value = value is not null ? attribute(value, property) %}
-    {% endfor %}
-    {{ value }}
+  {% set properties = path|split('.') %}
+  {% set value = object %}
+  {% for property in properties %}
+    {% set value = value is not null ? attribute(value, property) %}
+  {% endfor %}
+  {{ value }}
 {% endmacro %}

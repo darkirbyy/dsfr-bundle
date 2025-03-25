@@ -4,27 +4,37 @@ import DataTable from 'datatables.net-dt';
 export default class DatatableController extends Controller {
   static targets = [
     'visible',
-    'searchable', 'searchInput', 'searchButton',
+    'searchable',
+    'searchInput',
+    'searchButton',
     'filtrable',
     'sortable',
-    'pageFirst', 'pagePrev', 'pageEllipsisBefore', 'pageBefore', 'pageCurrent', 'pageAfter', 'pageEllipsisAfter', 'pageNext', 'pageLast',
+    'pageFirst',
+    'pagePrev',
+    'pageEllipsisBefore',
+    'pageBefore',
+    'pageCurrent',
+    'pageAfter',
+    'pageEllipsisAfter',
+    'pageNext',
+    'pageLast',
     'records',
   ];
 
   static values = {
     options: Object,
-  }
+  };
 
   connect() {
     // Définir les colonnes visibles
     let visibleColumns = Array();
-    this.visibleTargets.forEach(element => {
+    this.visibleTargets.forEach((element) => {
       visibleColumns.push(this.getColumnIndex(element));
     });
 
     // Définir les colonnes de recherche
     let searchColumns = Array();
-    this.searchableTargets.forEach(element => {
+    this.searchableTargets.forEach((element) => {
       searchColumns.push(this.getColumnIndex(element));
     });
 
@@ -33,12 +43,12 @@ export default class DatatableController extends Controller {
 
     // Initialiser DataTable avec une configuration adaptée
     this.dataTable = new DataTable(tableElement, {
-      dom: "t",
+      dom: 't',
       autoWidth: true,
       paging: this.optionsValue['paging'] ?? true,
       pageLength: this.optionsValue['pagingLength'] ?? 50,
       pagingType: 'simple',
-      searching:  true,
+      searching: true,
       ordering: true,
       orderCellsTop: true,
       columnDefs: [
@@ -46,7 +56,7 @@ export default class DatatableController extends Controller {
         { searchable: true, targets: searchColumns },
         { searchable: false, targets: '_all' },
         { visible: true, targets: visibleColumns },
-        { visible: false, targets: '_all' }
+        { visible: false, targets: '_all' },
       ],
       language: {
         emptyTable: 'Aucune donnée à afficher',
@@ -128,7 +138,7 @@ export default class DatatableController extends Controller {
     // Fermer les menus de filtrage quand on clique en dehors
     window.addEventListener('click', (event) => {
       const closestAppFilter = event.target.closest('.app-filter');
-      this.filtrableTargets.forEach(element => {
+      this.filtrableTargets.forEach((element) => {
         const appFilter = element.querySelector('.app-filter');
         if (appFilter != closestAppFilter) {
           this.hideElement(appFilter.querySelector('fieldset'));
@@ -137,7 +147,7 @@ export default class DatatableController extends Controller {
     });
 
     this.filterValues = Array();
-    this.filtrableTargets.forEach(element => {
+    this.filtrableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
       const button = element.querySelector('[id^="datatable-filter"]');
       const fieldset = element.querySelector('fieldset');
@@ -148,25 +158,28 @@ export default class DatatableController extends Controller {
         if (fieldset.classList.contains('fr-hidden')) {
           button.setAttribute('aria-expanded', true);
           this.showElement(fieldset);
-        }
-        else {
+        } else {
           button.setAttribute('aria-expanded', false);
           this.hideElement(fieldset);
         }
       });
 
       // Initialisation du tableau de valeur autorisées pour le filtre
-      this.updateFilter(checkboxes, columnIndex)
+      this.updateFilter(checkboxes, columnIndex);
 
       // Ajouter une recherche fixe, par layer. Ne pas utiliser cell qui est vide car la recherche globale sur ce champ est désactivé !
-      this.dataApi.column(columnIndex).search.fixed('filter' + columnIndex.toString(), (cell, data) => {
-        return this.filterValues[columnIndex].includes(data[columnIndex]["@data-search"]);
-      });
+      this.dataApi
+        .column(columnIndex)
+        .search.fixed('filter' + columnIndex.toString(), (cell, data) => {
+          return this.filterValues[columnIndex].includes(
+            data[columnIndex]['@data-search']
+          );
+        });
 
       // Ajout des écouteurs pour les cases à cocher
-      checkboxes.forEach(checkbox => {
+      checkboxes.forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
-          this.updateFilter(checkboxes, columnIndex)
+          this.updateFilter(checkboxes, columnIndex);
           this.performRedraw();
         });
       });
@@ -176,8 +189,8 @@ export default class DatatableController extends Controller {
   updateFilter(checkboxes, columnIndex) {
     // Mettre à jour les valeurs autorisées pour le filtre
     this.filterValues[columnIndex] = Array.from(checkboxes)
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => checkbox.getAttribute('data-datatable-value'));
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => checkbox.getAttribute('data-datatable-value'));
   }
 
   setupSortListeners() {
@@ -185,14 +198,14 @@ export default class DatatableController extends Controller {
       return;
     }
 
-    this.sortableTargets.forEach(element => {
+    this.sortableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
       const button = element.querySelector('[id^="datatable-sort"]');
       const initDirection = element.getAttribute('data-datatable-sort-init');
 
       // Initialisation du tri s'il es définit
       if (initDirection) {
-        this.performSort(button, columnIndex, initDirection)
+        this.performSort(button, columnIndex, initDirection);
       }
 
       // Ajout des écouteurs pour les boutons de tri
@@ -213,12 +226,14 @@ export default class DatatableController extends Controller {
       newDirection = currentOrder[1] === 'asc' ? 'desc' : 'asc';
     }
 
-    // Appliquer le tri 
+    // Appliquer le tri
     this.dataTable.order([columnIndex, newDirection]).draw();
 
     // Mettre à jour les attributs Aria
-    this.sortableTargets.forEach(element => {
-      element.querySelector('[id^="datatable-sort"]').removeAttribute('aria-sort');
+    this.sortableTargets.forEach((element) => {
+      element
+        .querySelector('[id^="datatable-sort"]')
+        .removeAttribute('aria-sort');
     });
     button.setAttribute('aria-sort', newDirection + 'ending');
   }
@@ -234,7 +249,7 @@ export default class DatatableController extends Controller {
       { element: this.pageBeforeTarget, apiEvent: 'previous' },
       { element: this.pageNextTarget, apiEvent: 'next' },
       { element: this.pageAfterTarget, apiEvent: 'next' },
-      { element: this.pageLastTarget, apiEvent: 'last' }
+      { element: this.pageLastTarget, apiEvent: 'last' },
     ];
 
     paginationElements.forEach(({ element, apiEvent }) => {
@@ -261,7 +276,8 @@ export default class DatatableController extends Controller {
     const isFirstPage = currentPage === 1;
     const isFirstOrSecondPage = currentPage === 1 || currentPage === 2;
     const isLastPage = currentPage === totalPages;
-    const isLastOrSecondPage = currentPage === totalPages || currentPage === totalPages - 1;
+    const isLastOrSecondPage =
+      currentPage === totalPages || currentPage === totalPages - 1;
 
     // Première page et page précédente
     if (isFirstPage) {
@@ -288,7 +304,7 @@ export default class DatatableController extends Controller {
     }
 
     // Page courante
-    let pageCurrentNum = (currentPage).toString();
+    let pageCurrentNum = currentPage.toString();
     this.pageCurrentTarget.textContent = pageCurrentNum;
     this.pageCurrentTarget.setAttribute('title', 'Page ' + pageCurrentNum);
 
@@ -324,7 +340,8 @@ export default class DatatableController extends Controller {
 
     // Met à jour la valeur dans la page
     let recordsNum = records.toString();
-    this.recordsTarget.textContent = recordsNum + ' ligne' + (records > 1 ? 's' : '');
+    this.recordsTarget.textContent =
+      recordsNum + ' ligne' + (records > 1 ? 's' : '');
   }
 
   performRedraw() {
