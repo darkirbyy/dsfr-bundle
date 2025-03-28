@@ -86,23 +86,20 @@ export default class DatatableController extends Controller {
           title: this.optionsValue['exportingName'] ?? 'Export',
           exportOptions: {
             columns: exportableColumns,
+            format: {
+              header: (data, columnIdx) => this.getExportHeader(columnIdx),
+            },
           },
         },
         {
           name: 'pdf',
           extend: 'pdfHtml5',
           title: this.optionsValue['exportingName'] ?? 'Export',
+          customize: (doc) => this.getExportPdfCustomization(doc),
           exportOptions: {
             columns: exportableColumns,
-            // modifier: {
-            //   page: 'all',
-            // },
             format: {
-              header: (data, columnIdx) => {
-                return tableElement.querySelector(
-                  '[data-datatable-column="' + columnIdx + '"] .fr-cell__title'
-                ).innerText;
-              },
+              header: (data, columnIdx) => this.getExportHeader(columnIdx),
             },
           },
         },
@@ -145,13 +142,10 @@ export default class DatatableController extends Controller {
     /*global pdfMake*/
     pdfMake.fonts = {
       Roboto: {
-        normal:
-          'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
+        normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
         bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
-        italics:
-          'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
-        bolditalics:
-          'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf',
+        italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
+        bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf',
       },
     };
 
@@ -243,13 +237,9 @@ export default class DatatableController extends Controller {
       this.updateFilter(checkboxes, columnIndex);
 
       // Ajouter une recherche fixe, par layer. Ne pas utiliser cell qui est vide car la recherche globale sur ce champ est désactivé !
-      this.dataApi
-        .column(columnIndex)
-        .search.fixed('filter' + columnIndex.toString(), (cell, data) => {
-          return this.filterValues[columnIndex].includes(
-            data[columnIndex]['@data-search']
-          );
-        });
+      this.dataApi.column(columnIndex).search.fixed('filter' + columnIndex.toString(), (cell, data) => {
+        return this.filterValues[columnIndex].includes(data[columnIndex]['@data-search']);
+      });
 
       // Ajout des écouteurs pour les cases à cocher
       checkboxes.forEach((checkbox) => {
@@ -306,9 +296,7 @@ export default class DatatableController extends Controller {
 
     // Mettre à jour les attributs Aria
     this.sortableTargets.forEach((element) => {
-      element
-        .querySelector('[id^="datatable-sort"]')
-        .removeAttribute('aria-sort');
+      element.querySelector('[id^="datatable-sort"]').removeAttribute('aria-sort');
     });
     button.setAttribute('aria-sort', newDirection + 'ending');
   }
@@ -351,8 +339,7 @@ export default class DatatableController extends Controller {
     const isFirstPage = currentPage === 1;
     const isFirstOrSecondPage = currentPage === 1 || currentPage === 2;
     const isLastPage = currentPage === totalPages;
-    const isLastOrSecondPage =
-      currentPage === totalPages || currentPage === totalPages - 1;
+    const isLastOrSecondPage = currentPage === totalPages || currentPage === totalPages - 1;
 
     // Première page et page précédente
     if (isFirstPage) {
@@ -415,8 +402,7 @@ export default class DatatableController extends Controller {
 
     // Met à jour la valeur dans la page
     let recordsNum = records.toString();
-    this.recordsTarget.textContent =
-      recordsNum + ' ligne' + (records > 1 ? 's' : '');
+    this.recordsTarget.textContent = recordsNum + ' ligne' + (records > 1 ? 's' : '');
   }
 
   performRedraw() {
@@ -450,5 +436,27 @@ export default class DatatableController extends Controller {
 
   getColumnIndex(element) {
     return parseInt(element.getAttribute('data-datatable-column'), 10);
+  }
+
+  getExportHeader(columnIdx) {
+    return this.element.querySelector(`[data-datatable-column="${columnIdx}"] .fr-cell__title`).innerText;
+  }
+
+  getExportPdfCustomization(doc) {
+    doc.footer = function (currentPage, pageCount) {
+      return [
+        {
+          text: `${currentPage} / ${pageCount}`,
+          alignment: 'center',
+        },
+      ];
+    };
+
+    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1)
+      .join('*')
+      .split('');
+
+    doc.defaultStyle.alignment = 'left';
+    doc.styles.tableHeader.alignment = 'left';
   }
 }

@@ -17,8 +17,8 @@
     </div>
     <div>
       {% if datatableOptions.exporting ?? true %}
-        <button class="fr-btn fr-btn--sm fr-btn--secondary" data-datatable-target="exportPdfButton" title="Export en PDF">PDF</button>
-        <button class="fr-btn fr-btn--sm fr-btn--secondary" data-datatable-target="exportCsvButton" title="Export en CSV">CSV</button>
+        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-datatable-target="exportPdfButton" title="Export en PDF">PDF</button>
+        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-datatable-target="exportCsvButton" title="Export en CSV">CSV</button>
       {% endif %}
     </div>
   </div>
@@ -38,7 +38,7 @@
                   {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
                   {% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
                     {% set data_sort_init %}
-                      data-datatable-sort-init={{ column.sortInit }}"
+                      data-datatable-sort-init="{{ column.sortInit }}"
                     {% endset %}
                   {% else %}
                     {% set data_sort_init = null %}
@@ -108,7 +108,7 @@
                     {# Valeur utilisée pour le tri #}
                     {% if column.sortable ?? false and column.sortProperty is defined %}
                       {% set data_order %}
-                        data-search="{{ attribute_deep(object, column.sortProperty)|trim }}""
+                        data-order="{{ attribute_deep(object, column.sortProperty)|trim }}"
                       {% endset %}
                     {% else %}
                       {% set data_order = null %}
