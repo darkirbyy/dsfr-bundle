@@ -2,10 +2,10 @@
 
 ## Dépendances
 
-Il faut avoir ajouté `datatables.net-dt` à l'import-map via :
+Il faut avoir ajouté les dépendances suivantes à l'import-map via :
 
 ```sh
-symfony console importmap:require datatables.net-dt
+symfony console importmap:require datatables.net-dt datatables.net-buttons datatables.net-buttons/js/buttons.html5 pdfmake
 ```
 
 ## Installation
@@ -44,11 +44,15 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
   - **searching**: *bool* (optionnel, défaut true) Active ou non la zone de recherche
   - **searchingLive**: *bool* (optionnel, défaut true) Active ou non la recherche live, dès que l'utilisateur tape dans la zone de recherche
   - **searchingLiveDelay**: *int* (optionnel, défaut true) Délai en millisecondes avant de déclencher une recherche live
+  - **exporting**: *bool* (optionnel, défaut true) Active ou non l'export pdf/csv
+  - **exportingName**: *string* (optionnel, défaut 'Export') Nom des fichiers exportés
 
 - **datatableColumns** est un *array d'array*, dont chaque élément définit une colonne du tableau. Chaque ligne peut contenir les clés suivantes :
   - **property**: *string* (OBLIGATOIRE) quelle propriété de l'objet doit être affichée. Peut être une sous propriété (exemple adresse.ville).
   - **label**: *string* (OBLIGATOIRE) nom de la colonne à afficher dans l'en-tête.
+  - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un block à insérer depuis le customFile, le block ayant accès à l'objet de la ligne courante dans la variable object
   - **visible**: *bool* (optionnel, défaut false) la colonne doit-elle être visible ?
+  - **exportable**: *bool* (optionnel, défaut true) la colonne doit-elle être affichée dans les exports csv/pdf ?
   - **searchable**: *bool* (optionnel, défaut false) la colonne doit-elle être cherchable ?
   - **searchProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour la recherche (exemple identite.nomComplet si on utilise on nom abrégé pour l'affichage)
   - **sortable**: *bool* (optionnel, défaut false) la colonne doit-elle être triable ?
@@ -60,7 +64,6 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
   - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, dépend de filterType
     - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
     - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
-  - **custom**: *bool* (optionnel, défaut false) dans ce cas, toutes les autres options sont ignorées et property est le nom du block à insérer, qui a accès à l'objet de la ligne courante dans la variable object
 
 Exemple :
 
@@ -72,6 +75,7 @@ Exemple :
     pagingLength: 30,
     searching: true,
     searchingLive: false,
+    exporting: true,
 } %}
 
 {% set datatableColumns = [

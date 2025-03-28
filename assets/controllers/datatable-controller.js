@@ -1,9 +1,15 @@
 import { Controller } from '@hotwired/stimulus';
 import DataTable from 'datatables.net-dt';
+import 'datatables.net-buttons';
+import 'datatables.net-buttons/js/buttons.html5';
+import 'pdfmake';
 
 export default class DatatableController extends Controller {
   static targets = [
+    'exportCsvButton',
+    'exportPdfButton',
     'visible',
+    'exportable',
     'searchable',
     'searchInput',
     'searchButton',
@@ -32,6 +38,12 @@ export default class DatatableController extends Controller {
       visibleColumns.push(this.getColumnIndex(element));
     });
 
+    // Définir les colonnes exportables
+    let exportableColumns = Array();
+    this.exportableTargets.forEach((element) => {
+      exportableColumns.push(this.getColumnIndex(element));
+    });
+
     // Définir les colonnes de recherche
     let searchColumns = Array();
     this.searchableTargets.forEach((element) => {
@@ -43,7 +55,12 @@ export default class DatatableController extends Controller {
 
     // Initialiser DataTable avec une configuration adaptée
     this.dataTable = new DataTable(tableElement, {
-      dom: 't',
+      layout: {
+        topStart: null,
+        topEnd: null,
+        bottomStart: null,
+        bottomEnd: null,
+      },
       autoWidth: true,
       paging: this.optionsValue['paging'] ?? true,
       pageLength: this.optionsValue['pagingLength'] ?? 50,
@@ -62,10 +79,41 @@ export default class DatatableController extends Controller {
         emptyTable: 'Aucune donnée à afficher',
         zeroRecords: 'Aucun résultat',
       },
+      buttons: [
+        {
+          name: 'csv',
+          extend: 'csvHtml5',
+          title: this.optionsValue['exportingName'] ?? 'Export',
+          exportOptions: {
+            columns: exportableColumns,
+          },
+        },
+        {
+          name: 'pdf',
+          extend: 'pdfHtml5',
+          title: this.optionsValue['exportingName'] ?? 'Export',
+          exportOptions: {
+            columns: exportableColumns,
+            // modifier: {
+            //   page: 'all',
+            // },
+            format: {
+              header: (data, columnIdx) => {
+                return tableElement.querySelector(
+                  '[data-datatable-column="' + columnIdx + '"] .fr-cell__title'
+                ).innerText;
+              },
+            },
+          },
+        },
+      ],
     });
 
     // Récupération de l'api
     this.dataApi = new DataTable.Api(tableElement);
+
+    // Initialiser les boutons d'export
+    this.setupExportListeners();
 
     // Initialiser la recherche
     this.setupSearchListeners();
@@ -87,6 +135,33 @@ export default class DatatableController extends Controller {
     if (this.dataTable) {
       this.dataTable.destroy();
     }
+  }
+
+  setupExportListeners() {
+    if (!(this.optionsValue['exporting'] ?? true)) {
+      return;
+    }
+
+    /*global pdfMake*/
+    pdfMake.fonts = {
+      Roboto: {
+        normal:
+          'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
+        bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
+        italics:
+          'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
+        bolditalics:
+          'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf',
+      },
+    };
+
+    this.exportCsvButtonTarget.addEventListener('click', () => {
+      this.dataTable.buttons('csv:name').trigger();
+    });
+
+    this.exportPdfButtonTarget.addEventListener('click', () => {
+      this.dataTable.buttons('pdf:name').trigger();
+    });
   }
 
   setupSearchListeners() {
@@ -137,11 +212,11 @@ export default class DatatableController extends Controller {
 
     // Fermer les menus de filtrage quand on clique en dehors
     window.addEventListener('click', (event) => {
-      const closestAppFilter = event.target.closest('.app-filter');
+      const closestDatatableFilter = event.target.closest('.datatable-filter');
       this.filtrableTargets.forEach((element) => {
-        const appFilter = element.querySelector('.app-filter');
-        if (appFilter != closestAppFilter) {
-          this.hideElement(appFilter.querySelector('fieldset'));
+        const datatableFilter = element.querySelector('.datatable-filter');
+        if (datatableFilter != closestDatatableFilter) {
+          this.hideElement(datatableFilter.querySelector('fieldset'));
         }
       });
     });

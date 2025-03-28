@@ -1,3 +1,10 @@
+.datatable .datatable-space-between{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
 .datatable .fr-table {
   margin-bottom: 0.5rem !important;
 }
@@ -6,9 +13,9 @@
   overflow: initial;
 }
 
-.datatable .fr-search-bar {
-  width: 33%;
-  max-width: 30rem;
+.datatable .datatable-search {
+  width: 40%;
+  min-width: 20rem;
 }
 
 .datatable .fr-cell__title {
@@ -19,11 +26,11 @@
   margin-left: 0.5rem !important;
 }
 
-.datatable .app-filter {
+.datatable .datatable-filter {
   position: relative;
 }
 
-.datatable .app-filter fieldset {
+.datatable .datatable-filter fieldset {
   transform: translateX(calc(2rem - 100%));
   position: absolute;
   margin: 0;
@@ -33,18 +40,18 @@
   overflow: auto;
 }
 
-.datatable .app-filter fieldset .fr-fieldset__element {
+.datatable .datatable-filter fieldset .fr-fieldset__element {
   margin: 0.25rem 0;
 }
 
-.datatable .app-filter fieldset label {
+.datatable .datatable-filter fieldset label {
   font-weight: 400;
   color: var(--text-default-grey) !important;
   font-size: 0.875rem;
   line-height: 1.5rem;
 }
 
-.datatable .app-filter button {
+.datatable .datatable-filter button {
   font-size: 0.875rem;
   line-height: 1.5rem;
   min-height: 2rem;
@@ -64,7 +71,7 @@
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
 }
 
-.datatable .app-filter button::before {
+.datatable .datatable-filter button::before {
   --icon-size: 1rem;
 
   margin-left: 0;
@@ -81,15 +88,15 @@
   transition: transform 0.3s;
 }
 
-.datatable .app-filter button:hover {
+.datatable .datatable-filter button:hover {
   background-color: rgb(0 0 0 / 5%);
 }
 
-.datatable .app-filter button:active {
+.datatable .datatable-filter button:active {
   background-color: rgb(0 0 0 / 10%);
 }
 
-.datatable .app-filter button:disabled {
+.datatable .datatable-filter button:disabled {
   color: var(--text-disabled-grey);
   box-shadow: inset 0 0 0 1px var(--border-disabled-grey);
   background-color: transparent;
@@ -97,3 +104,4 @@
   --hover: inherit;
   --active: inherit;
 }
+

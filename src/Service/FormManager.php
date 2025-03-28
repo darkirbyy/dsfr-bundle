@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use AcStrasbourg\LibraryBundle\Enum\LibAlertTypeEnum;
 use Doctrine\DBAL\Exception\ConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
@@ -66,7 +65,7 @@ class FormManager
             ->getPayload()
             ->get($tokenName . '_token');
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $tokenValue))) {
-            $this->flashBag->add(LibAlertTypeEnum::Error->value, 'Jeton CSRF invalide.');
+            $this->flashBag->add('error', 'Jeton CSRF invalide.');
 
             return false;
         }
@@ -90,11 +89,11 @@ class FormManager
             $this->entityManager->flush();
 
             $flashSuccess ??= 'Enregistrement effectué avec succès';
-            $this->flashBag->add(LibAlertTypeEnum::Success->value, $flashSuccess);
+            $this->flashBag->add('success', $flashSuccess);
 
             return true;
         } catch (ORMException|ConstraintViolationException $e) {
-            $this->flashBag->add(LibAlertTypeEnum::Error->value, $e->getMessage());
+            $this->flashBag->add('error', $e->getMessage());
 
             return false;
         }
@@ -116,11 +115,11 @@ class FormManager
             $this->entityManager->flush();
 
             $flashSuccess ??= 'Suppression effectuée avec succès';
-            $this->flashBag->add(LibAlertTypeEnum::Success->value, $flashSuccess);
+            $this->flashBag->add('success', $flashSuccess);
 
             return true;
         } catch (ORMException $e) {
-            $this->flashBag->add(LibAlertTypeEnum::Error->value, $e->getMessage());
+            $this->flashBag->add('error', $e->getMessage());
 
             return false;
         }
@@ -135,7 +134,7 @@ class FormManager
     {
         $errorLinks = self::determineErrorLinks($form);
         $flashWarning = count($errorLinks) > 1 ? 'Le formulaire contient des erreurs de saisies. Champs : ' : 'Le formulaire contient une erreur de saisie. Champ : ';
-        $this->flashBag->add(LibAlertTypeEnum::Warning->value, $flashWarning . implode(', ', $errorLinks));
+        $this->flashBag->add('warning', $flashWarning . implode(', ', $errorLinks));
     }
 
     /**
