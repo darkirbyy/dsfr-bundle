@@ -3,8 +3,8 @@
 <div class="datatable" data-controller="datatable" data-datatable-options-value="{{ datatableOptions|default({ paging: true })|json_encode }}">
   <div class="datatable-space-between">
     <div class="datatable-search">
-      {% if datatableOptions.searching ?? true %}
-        {% set searchableProperties = datatableColumns|filter(column => column.searchable ?? false)|map(column => column.label|lower)|join(' - ') %}
+      {% if (datatableOptions.searching ?? true) %}
+        {% set searchableProperties = datatableColumns|filter(column => (column.searchable ?? false))|map(column => column.label|lower)|join(' - ') %}
         <div class="fr-search-bar" role="search">
           <label class="fr-label" for="datatable-search">
             Recherche sur
@@ -16,7 +16,7 @@
       {% endif %}
     </div>
     <div>
-      {% if datatableOptions.exporting ?? true %}
+      {% if (datatableOptions.exporting ?? true) %}
         <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-datatable-target="exportPdfButton" title="Export en PDF">PDF</button>
         <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-datatable-target="exportCsvButton" title="Export en CSV">CSV</button>
       {% endif %}
@@ -31,9 +31,9 @@
             <thead>
               <tr>
                 {% for column in datatableColumns %}
-                  {% set target = (column.visible ?? true ? 'visible') ~ (column.exportable ?? true ? ' exportable') ~ (column.searchable ?? false ? ' searchable')
-                    ~ (column.sortable ?? false ? ' sortable')
-                    ~ (column.filtrable ?? false ? ' filtrable')
+                  {% set target = ((column.visible ?? true) ? 'visible') ~ ((column.exportable ?? true) ? ' exportable') ~ ((column.searchable ?? false) ? ' searchable')
+                    ~ ((column.sortable ?? false) ? ' sortable')
+                    ~ ((column.filtrable ?? false) ? ' filtrable')
                   %}
                   {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
                   {% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
@@ -50,7 +50,7 @@
                       <span class="fr-cell__title">{{ column.label }}</span>
 
                       {# Bouton + menu pour une colonne filtrable #}
-                      {% if column.filtrable ?? false %}
+                      {% if (column.filtrable ?? false) %}
                         {% set filterId = 'datatable-filter-' ~ loop.index0 %}
                         <div class="datatable-filter">
                           {# Bouton pour afficher/cacher le menu contenant les filtres #}
@@ -88,7 +88,7 @@
                       {% endif %}
 
                       {# Bouton + menu pour une colonne triable #}
-                      {% if column.sortable ?? false %}
+                      {% if (column.sortable ?? false) %}
                         {% set sortId = 'datatable-sort-' ~ loop.index0 %}
                         <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" id="{{ sortId }}">
                           Trier par
@@ -106,7 +106,7 @@
                 <tr data-row-key="{{ loop.index }}">
                   {% for column in datatableColumns %}
                     {# Valeur utilisée pour le tri #}
-                    {% if column.sortable ?? false and column.sortProperty is defined %}
+                    {% if (column.sortable ?? false) and column.sortProperty is defined %}
                       {% set data_order %}
                         data-order="{{ attribute_deep(object, column.sortProperty)|trim }}"
                       {% endset %}
@@ -115,7 +115,7 @@
                     {% endif %}
 
                     {# Valeur utilisée pour le filtrage et/ou la recherche #}
-                    {% if column.filtrable ?? false or column.searchProperty is defined %}
+                    {% if (column.filtrable ?? false) or column.searchProperty is defined %}
                       {% set data_search %}
                         data-search="{{ attribute_deep(object, column.searchProperty|default(column.property))|trim }}"
                       {% endset %}
