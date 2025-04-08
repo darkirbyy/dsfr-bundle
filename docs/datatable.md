@@ -53,13 +53,14 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
   - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un block à insérer depuis le customFile, le block ayant accès à l'objet de la ligne courante dans la variable object
   - **visible**: *bool* (optionnel, défaut false) la colonne doit-elle être visible ?
   - **exportable**: *bool* (optionnel, défaut true) la colonne doit-elle être affichée dans les exports csv/pdf ?
+  - **exportProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour l'export (exemple statut.libelle si on formate le statut avec des tags/badges etc)
   - **searchable**: *bool* (optionnel, défaut false) la colonne doit-elle être cherchable ?
-  - **searchProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour la recherche (exemple identite.nomComplet si on utilise on nom abrégé pour l'affichage)
   - **sortable**: *bool* (optionnel, défaut false) la colonne doit-elle être triable ?
   - **sortProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le tri (exemple date.timestamp si on formate la date autrement)
   - **sortInit**: *asc*|desc|none (optionnel, défaut none) la colonne doit-elle être triée par défaut ? Attention, ne doit être placé que sur une seule colonne
   - **filtrable**: *bool* (optionnel, défaut false) la colonne doit-elle être filtrable ?
   - **filterChoices**: *array[string]* (OBLIGATOIRE si filtrable est vrai) les différents choix de filtrage
+  - **filterProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le filtrage (exemple statut.libelle si on formate le statut avec des tags/badges etc)
   - **filterType**: *checkbox|radio* (optionnel, défaut checkbox) filtrage avec choix unique (radio buttons) ou multiple (checbox buttons)
   - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, dépend de filterType
     - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés

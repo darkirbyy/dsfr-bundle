@@ -105,12 +105,21 @@
               {% for object in objects %}
                 <tr data-row-key="{{ loop.index }}">
                   {% for column in datatableColumns %}
+                    {# HTML data param #}
+                    {% set data_param %}
+                      {% if column.sortable ?? false and column.sortProperty is defined %}
+                        data-order="{{ attribute_deep(object, column.sortProperty)|trim }}"
+                      {% endif %}
+                      {% if column.filtrable ?? false and column.filterProperty is defined %}
+                        data-filter="{{ attribute_deep(object, column.filterProperty)|trim }}"
+                      {% endif %}
+                      {% if column.exportable ?? true and column.exportProperty is defined %}
+                        data-export="{{ attribute_deep(object, column.exportProperty)|trim }}"
+                      {% endif %}
+                    {% endset %}
+
                     {# Valeur affichée #}
-                    <td
-                      {{ data_param(object, 'data-order', column.sortable ?? false, column.sortProperty ?? null) }}
-                      {{ data_param(object, 'data-filter', column.filtrable ?? false, column.filterProperty ?? null) }}
-                      {{ data_param(object, 'data-export', column.exportable ?? true, column.exportProperty ?? null) }}
-                    >
+                    <td {{ data_param }}>
                       {% if column.custom|default(false) %}
                         {% with { path: customFilePath, block: column.property, object: object } only %}
                         {{ block(block, path) }}
