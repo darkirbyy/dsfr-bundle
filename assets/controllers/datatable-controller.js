@@ -3,6 +3,7 @@ import DataTable from 'datatables.net-dt';
 import 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5';
 import 'pdfmake';
+import '../javascripts/vfs-marianne.js';
 
 export default class DatatableController extends Controller {
   static targets = [
@@ -143,11 +144,11 @@ export default class DatatableController extends Controller {
 
     /*global pdfMake*/
     pdfMake.fonts = {
-      Roboto: {
-        normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
-        bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
-        italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
-        bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf',
+      Marianne: {
+        normal: 'Marianne-Regular.ttf',
+        bold: 'Marianne-Bold.ttf',
+        italics: 'Marianne-RegularItalic.ttf',
+        bolditalics: 'Marianne-BoldItalic.ttf',
       },
     };
 
@@ -450,6 +451,7 @@ export default class DatatableController extends Controller {
         {
           text: `${currentPage} / ${pageCount}`,
           alignment: 'center',
+          fontSize: 8,
         },
       ];
     };
@@ -458,8 +460,17 @@ export default class DatatableController extends Controller {
       .join('*')
       .split('');
 
-    doc.defaultStyle.alignment = 'left';
-    doc.styles.tableHeader.alignment = 'left';
+    doc.styles.tableHeader = {
+      alignment: 'left',
+      fontSize: 10,
+      bold: true,
+    };
+
+    doc.defaultStyle = {
+      alignment: 'left',
+      font: 'Marianne',
+      fontSize: 9,
+    };
   }
 
   getExportBody(data, node) {
