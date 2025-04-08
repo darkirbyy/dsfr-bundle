@@ -88,6 +88,7 @@ export default class DatatableController extends Controller {
             columns: exportableColumns,
             format: {
               header: (data, columnIdx) => this.getExportHeader(columnIdx),
+              body: (data, row, column, node) => this.getExportBody(data, node),
             },
           },
         },
@@ -100,6 +101,7 @@ export default class DatatableController extends Controller {
             columns: exportableColumns,
             format: {
               header: (data, columnIdx) => this.getExportHeader(columnIdx),
+              body: (data, row, column, node) => this.getExportBody(data, node),
             },
           },
         },
@@ -238,7 +240,7 @@ export default class DatatableController extends Controller {
 
       // Ajouter une recherche fixe, par layer. Ne pas utiliser cell qui est vide car la recherche globale sur ce champ est désactivé !
       this.dataApi.column(columnIndex).search.fixed('filter' + columnIndex.toString(), (cell, data) => {
-        return this.filterValues[columnIndex].includes(data[columnIndex]['@data-search']);
+        return this.filterValues[columnIndex].includes(data[columnIndex]['@data-filter']);
       });
 
       // Ajout des écouteurs pour les cases à cocher
@@ -458,5 +460,15 @@ export default class DatatableController extends Controller {
 
     doc.defaultStyle.alignment = 'left';
     doc.styles.tableHeader.alignment = 'left';
+  }
+
+  getExportBody(data, node) {
+    const exportValue = node.getAttribute('data-export');
+
+    if (exportValue !== null) {
+      return exportValue;
+    }
+
+    return data;
   }
 }

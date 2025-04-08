@@ -7,3 +7,9 @@
   {% endfor %}
   {{ value }}
 {% endmacro %}
+
+{% macro data_param(object, param, enable, property) %}
+  {% if enable and property is not null %}
+    {{ param }}="{{ _self.attribute_deep(object, property)|trim }}"
+  {% endif %}
+{% endmacro %}
