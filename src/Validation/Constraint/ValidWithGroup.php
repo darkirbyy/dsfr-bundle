@@ -6,7 +6,7 @@ namespace Darkirby\DsfrBundle\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
 
-#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD)]
+#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class ValidWithGroup extends Constraint
 {
     public function __construct(array $groups = [Constraint::DEFAULT_GROUP], protected array $trigger = [Constraint::DEFAULT_GROUP])

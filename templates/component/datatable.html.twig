@@ -36,15 +36,13 @@
                     ~ (column.filtrable ?? false ? ' filtrable')
                   %}
                   {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
-                  {% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
-                    {% set data_sort_init %}
+                  {% set data_param %}
+                    data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}"{% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
                       data-datatable-sort-init="{{ column.sortInit }}"
-                    {% endset %}
-                  {% else %}
-                    {% set data_sort_init = null %}
-                  {% endif %}
+                    {% endif %}
+                  {% endset %}
 
-                  <th data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}" {{ data_sort_init is not null ? data_sort_init }}>
+                  <th {{ data_param }}>
                     <div class="fr-cell--sort">
                       {# Libellé de la colonne #}
                       <span class="fr-cell__title">{{ column.label }}</span>
