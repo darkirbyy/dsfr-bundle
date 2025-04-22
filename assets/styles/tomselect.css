@@ -1,33 +1,73 @@
+.tomselect {
+  margin-top: 0.5rem;
+}
+
+.tomselect.focus {
+  outline-color: #0a76f6;
+  outline-offset: 2px;
+  outline-style: solid;
+  outline-width: 2px;
+}
+
+.tomselect.has-items .ts-control input:not(:focus) {
+  color: var(--idle);
+}
+
+.tomselect .ts-control {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.tomselect .ts-control input {
+  flex: 1;
+  --idle: transparent;
+  --hover: var(--background-contrast-grey-hover);
+  --active: var(--background-contrast-grey-active);
+  color: var(--text-default-grey);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.tomselect .ts-control input:focus,
+.tomselect .ts-control input:focus-visible {
+  outline: none;
+}
+
+.tomselect .ts-control .item {
+  margin-top: 0.125rem;
+}
+
 .tomselect .ts-dropdown {
   position: absolute;
   left: 0;
   width: 100%;
   z-index: 10;
-  margin: 0;
-  padding: 0.25rem 0.5rem;
+  margin: 0.5rem 0;
 }
 
 .tomselect .ts-dropdown [data-selectable] {
-  cursor: pointer;
+  cursor: default;
   overflow: hidden;
 }
 
 .tomselect .ts-dropdown [data-selectable] .highlight {
-  background: var(--background-action-low-blue-france);
+  color: var(--text-action-high-grey);
+  font-weight: bold;
 }
 
 .tomselect .ts-dropdown .option {
-  padding: 0.25rem 0;
+  padding: 0.125rem 0.5rem;
+}
+
+.tomselect .ts-dropdown .option:hover {
+  background-color: var(--background-contrast-grey);
 }
 
 .tomselect .ts-dropdown-content {
   overflow: hidden auto;
   max-height: 12rem;
   scroll-behavior: smooth;
-}
-
-.tomselect input {
-  margin-top: 0.5rem;
 }
 
 /* .tomselect .item{
