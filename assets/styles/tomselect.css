@@ -38,6 +38,15 @@
   margin-top: 0.125rem;
 }
 
+.tomselect .ts-control .fr-tag {
+  margin-top: -0.125rem;
+  background-color: var(--background-action-low-blue-france);
+}
+
+.tomselect .ts-control .fr-tag .remove{
+  margin-left:0.25rem;
+}
+
 .tomselect .ts-control .clear-button {
   margin-top: 0.125rem;
 }
