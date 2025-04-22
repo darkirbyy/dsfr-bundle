@@ -38,6 +38,14 @@
   margin-top: 0.125rem;
 }
 
+.tomselect .ts-control .clear-button {
+  margin-top: 0.125rem;
+}
+
+.tomselect .ts-control .clear-button:hover {
+  cursor: pointer;
+}
+
 .tomselect .ts-dropdown {
   position: absolute;
   left: 0;

@@ -8,12 +8,20 @@ export default class TomSelectController extends Controller {
       maxOptions: 10,
       maxItems: 1,
       // plugins: ['remove_button'],
-      // plugins: ['clear_button'],
+      plugins: {
+        no_backspace_delete: {},
+        clear_button: {
+          title: 'Supprimer la sélection',
+        },
+      },
       closeAfterSelect: true,
       create: false,
       openOnFocus: false,
       hidePlaceholder: false,
       onInitialize: function () {
+        this.wrapper.addEventListener('click', () => {
+          this.focus();
+        });
         this.wrapper.classList.add('tomselect');
         this.dropdown.classList.add('fr-card', 'fr-card--shadow');
       },
