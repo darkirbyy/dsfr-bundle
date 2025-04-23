@@ -88,7 +88,7 @@ export default class DatatableController extends Controller {
           exportOptions: {
             columns: exportableColumns,
             format: {
-              header: (data, columnIdx) => this.getExportHeader(columnIdx),
+              header: (data, columnIdx, node) => this.getExportHeader(node),
               body: (data, row, column, node) => this.getExportBody(data, node),
             },
           },
@@ -101,7 +101,7 @@ export default class DatatableController extends Controller {
           exportOptions: {
             columns: exportableColumns,
             format: {
-              header: (data, columnIdx) => this.getExportHeader(columnIdx),
+              header: (data, columnIdx, node) => this.getExportHeader(node),
               body: (data, row, column, node) => this.getExportBody(data, node),
             },
           },
@@ -441,8 +441,8 @@ export default class DatatableController extends Controller {
     return parseInt(element.getAttribute('data-datatable-column'), 10);
   }
 
-  getExportHeader(columnIdx) {
-    return this.element.querySelector(`[data-datatable-column="${columnIdx}"] .fr-cell__title`).innerText;
+  getExportHeader(node) {
+    return node.querySelector('.fr-cell__title').innerText;
   }
 
   getExportPdfCustomization(doc) {
