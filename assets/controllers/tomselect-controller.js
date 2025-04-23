@@ -9,7 +9,7 @@ export default class TomSelectController extends Controller {
 
   connect() {
     // Récupération des options avec valeurs par défaut
-    const number = this.optionsValue['number'] ?? 10;
+    const number = this.optionsValue['number'] ?? null;
     const multiple = this.optionsValue['multiple'] ?? false;
     const create = this.optionsValue['create'] ?? false;
 

@@ -44,7 +44,7 @@ Dans un FormType, ajouter les attributs suivants dans le `attr` des options d'un
 
 L'attribut `data-tomselect-options-value` peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
 
-- **number**: *int* (optionnel, défaut 10) Nombres d'options à afficher dans le menu déroulant
+- **number**: *int|null* (optionnel, défaut null) Nombres d'options à afficher dans le menu déroulant, null = toutes
 - **multiple**: *bool* (optionnel, défaut false) Champ à sélection multiple ou non
 - **create**: *bool* (optionnel, défaut false) Autorise l'utilisateur à créer ces propres valeurs
 

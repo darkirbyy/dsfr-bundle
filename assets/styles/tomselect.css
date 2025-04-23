@@ -81,6 +81,13 @@
   background-color: var(--background-contrast-grey);
 }
 
+.tomselect .ts-dropdown .optgroup-header {
+  font-weight: bold;
+  color: var(--text-title-grey);
+  font-style: italic;
+  padding: 0.25rem 0.125rem;
+}
+
 .tomselect .ts-dropdown-content {
   overflow: hidden auto;
   max-height: 12rem;

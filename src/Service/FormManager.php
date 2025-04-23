@@ -48,6 +48,31 @@ class FormManager
         return false;
     }
 
+        /**
+     * Vérifie le jeton CSRF et persiste l'entité avec un message personnalisé optionnel en cas de réussite.
+     * Affiche un message d'erreur sinon.
+     *
+     * @param string      $tokenName    le nom du jeton CSRF, sans le suffixe _token (attribut "name" en HTML ou 'csrf_field_name' => ... en PHP)
+     * @param object      $object       l'entité à persister
+     * @param string|null $flashSuccess le message flash à afficher en cas de succès
+     *
+     * @return bool vrai si la vérification + persiste sont passés, faux sinon
+     */
+    public function checkTokenAndPersist(string $tokenName, object $object, ?string $flashSuccess = null): bool
+    {
+        $tokenValue = $this->requestStack
+            ->getCurrentRequest()
+            ->getPayload()
+            ->get($tokenName . '_token');
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $tokenValue))) {
+            $this->flashBag->add('error', 'Jeton CSRF invalide.');
+
+            return false;
+        }
+
+        return $this->persist($object, $flashSuccess);
+    }
+
     /**
      * Vérifie le jeton CSRF et supprime l'entité avec un message personnalisé optionnel en cas de réussite.
      * Affiche un message d'erreur sinon.
