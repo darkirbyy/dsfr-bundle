@@ -9,10 +9,6 @@
   margin-bottom: 0.5rem !important;
 }
 
-.datatable .fr-table__container {
-  overflow: initial;
-}
-
 .datatable .datatable-search {
   width: 40%;
   min-width: 20rem;

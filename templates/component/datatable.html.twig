@@ -105,13 +105,18 @@
                   {% for column in datatableColumns %}
                     {# HTML data param #}
                     {% set data_param %}
-                      {% if column.sortable ?? false and column.sortProperty is defined %}
+                      {% set sortable = column.sortable ?? false %}
+                      {% if sortable and column.sortProperty is defined %}
                         data-order="{{ attribute_deep(object, column.sortProperty)|trim }}"
                       {% endif %}
-                      {% if column.filtrable ?? false %}
+
+                      {% set filtrable = column.filtrable ?? false %}
+                      {% if filtrable %}
                         data-filter="{{ attribute_deep(object, column.filterProperty|default(column.property))|trim }}"
                       {% endif %}
-                      {% if column.exportable ?? true and column.exportProperty is defined %}
+
+                      {% set exportable = column.exportable ?? true %}
+                      {% if exportable and column.exportProperty is defined %}
                         data-export="{{ attribute_deep(object, column.exportProperty)|trim }}"
                       {% endif %}
                     {% endset %}

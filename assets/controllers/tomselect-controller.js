@@ -36,7 +36,7 @@ export default class TomSelectController extends Controller {
       openOnFocus: false,
       hidePlaceholder: false,
 
-      // On modifie quelques classes CSS à l'initialisaion
+      // On modifie quelques classes CSS à l'initialisation
       onInitialize: function () {
         this.wrapper.addEventListener('click', () => {
           this.focus();

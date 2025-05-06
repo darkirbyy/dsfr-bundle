@@ -33,6 +33,14 @@ export default class DatatableController extends Controller {
   };
 
   connect() {
+    // Récupération des options avec valeurs par défaut
+    this.paging = this.optionsValue['paging'] ?? true;
+    this.pagingLength =this.optionsValue['pagingLength'] ?? 50;
+    this.exporting =  this.optionsValue['exporting'] ?? true;
+    this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
+    this.searchingLive = this.optionsValue['searchingLive'] ?? true;
+    this.searchingLiveDelay = this.optionsValue['searchingLiveDelay'] ?? 500;
+
     // Définir les colonnes visibles
     let visibleColumns = Array();
     this.visibleTargets.forEach((element) => {
@@ -63,8 +71,8 @@ export default class DatatableController extends Controller {
         bottomEnd: null,
       },
       autoWidth: true,
-      paging: this.optionsValue['paging'] ?? true,
-      pageLength: this.optionsValue['pagingLength'] ?? 50,
+      paging: this.paging,
+      pageLength: this.pagingLength,
       pagingType: 'simple',
       searching: true,
       ordering: true,
@@ -84,7 +92,7 @@ export default class DatatableController extends Controller {
         {
           name: 'csv',
           extend: 'csvHtml5',
-          title: this.optionsValue['exportingName'] ?? 'Export',
+          title: this.exportingName,
           exportOptions: {
             columns: exportableColumns,
             format: {
@@ -96,7 +104,7 @@ export default class DatatableController extends Controller {
         {
           name: 'pdf',
           extend: 'pdfHtml5',
-          title: this.optionsValue['exportingName'] ?? 'Export',
+          title: this.exportingName,
           customize: (doc) => this.getExportPdfCustomization(doc),
           exportOptions: {
             columns: exportableColumns,
@@ -138,7 +146,7 @@ export default class DatatableController extends Controller {
   }
 
   setupExportListeners() {
-    if (!(this.optionsValue['exporting'] ?? true)) {
+    if (!this.exporting) {
       return;
     }
 
@@ -162,7 +170,7 @@ export default class DatatableController extends Controller {
   }
 
   setupSearchListeners() {
-    if (!(this.optionsValue['searching'] ?? true)) {
+    if (!this.exporting) {
       return;
     }
 
@@ -186,13 +194,13 @@ export default class DatatableController extends Controller {
     });
 
     // Option: recherche en temps réel
-    if (this.optionsValue['searchingLive'] ?? true) {
+    if (this.searchingLive) {
       this.searchInputTarget.addEventListener('input', () => {
         clearTimeout(this._searchTimeout);
         this._searchTimeout = setTimeout(() => {
           this.updateSearch();
           this.performRedraw();
-        }, this.optionsValue['searchingLiveDelay'] ?? 500);
+        }, this.searchingLiveDelay);
       });
     }
   }
@@ -213,7 +221,7 @@ export default class DatatableController extends Controller {
       this.filtrableTargets.forEach((element) => {
         const datatableFilter = element.querySelector('.datatable-filter');
         if (datatableFilter != closestDatatableFilter) {
-          this.hideElement(datatableFilter.querySelector('fieldset'));
+          this.hideFilterElement(datatableFilter.querySelector('fieldset'));
         }
       });
     });
@@ -229,10 +237,10 @@ export default class DatatableController extends Controller {
       button.addEventListener('click', () => {
         if (fieldset.classList.contains('fr-hidden')) {
           button.setAttribute('aria-expanded', true);
-          this.showElement(fieldset);
+          this.showFilterElement(fieldset);
         } else {
           button.setAttribute('aria-expanded', false);
-          this.hideElement(fieldset);
+          this.hideFilterElement(fieldset);
         }
       });
 
@@ -305,7 +313,7 @@ export default class DatatableController extends Controller {
   }
 
   setupPaginationListeners() {
-    if (!(this.optionsValue['paging'] ?? true)) {
+    if (!this.paging) {
       return;
     }
     //  Ajout des écouteurs pour les boutons de pagination
@@ -331,7 +339,7 @@ export default class DatatableController extends Controller {
   }
 
   updatePagination() {
-    if (!(this.optionsValue['paging'] ?? true)) {
+    if (!this.paging) {
       return;
     }
 
@@ -346,15 +354,15 @@ export default class DatatableController extends Controller {
 
     // Première page et page précédente
     if (isFirstPage) {
-      this.disableElement(this.pageFirstTarget);
-      this.disableElement(this.pagePrevTarget);
-      this.disableElement(this.pageBeforeTarget);
-      this.hideElement(this.pageBeforeTarget);
+      this.disablePagingElement(this.pageFirstTarget);
+      this.disablePagingElement(this.pagePrevTarget);
+      this.disablePagingElement(this.pageBeforeTarget);
+      this.hidePagingElement(this.pageBeforeTarget);
     } else {
-      this.enableElement(this.pageFirstTarget);
-      this.enableElement(this.pagePrevTarget);
-      this.enableElement(this.pageBeforeTarget);
-      this.showElement(this.pageBeforeTarget);
+      this.enablePagingElement(this.pageFirstTarget);
+      this.enablePagingElement(this.pagePrevTarget);
+      this.enablePagingElement(this.pageBeforeTarget);
+      this.showPagingElement(this.pageBeforeTarget);
 
       let pageBeforeNum = (currentPage - 1).toString();
       this.pageBeforeTarget.textContent = pageBeforeNum;
@@ -363,9 +371,9 @@ export default class DatatableController extends Controller {
 
     // Page avant ellipse
     if (isFirstOrSecondPage) {
-      this.hideElement(this.pageEllipsisBeforeTarget);
+      this.hidePagingElement(this.pageEllipsisBeforeTarget);
     } else {
-      this.showElement(this.pageEllipsisBeforeTarget);
+      this.showPagingElement(this.pageEllipsisBeforeTarget);
     }
 
     // Page courante
@@ -375,15 +383,15 @@ export default class DatatableController extends Controller {
 
     // Page suivante et dernière page
     if (isLastPage) {
-      this.disableElement(this.pageLastTarget);
-      this.disableElement(this.pageNextTarget);
-      this.disableElement(this.pageAfterTarget);
-      this.hideElement(this.pageAfterTarget);
+      this.disablePagingElement(this.pageLastTarget);
+      this.disablePagingElement(this.pageNextTarget);
+      this.disablePagingElement(this.pageAfterTarget);
+      this.hidePagingElement(this.pageAfterTarget);
     } else {
-      this.enableElement(this.pageLastTarget);
-      this.enableElement(this.pageNextTarget);
-      this.enableElement(this.pageAfterTarget);
-      this.showElement(this.pageAfterTarget);
+      this.enablePagingElement(this.pageLastTarget);
+      this.enablePagingElement(this.pageNextTarget);
+      this.enablePagingElement(this.pageAfterTarget);
+      this.showPagingElement(this.pageAfterTarget);
 
       let pageAfterNum = (currentPage + 1).toString();
       this.pageAfterTarget.textContent = pageAfterNum;
@@ -392,9 +400,9 @@ export default class DatatableController extends Controller {
 
     // Page après ellipse
     if (isLastOrSecondPage) {
-      this.hideElement(this.pageEllipsisAfterTarget);
+      this.hidePagingElement(this.pageEllipsisAfterTarget);
     } else {
-      this.showElement(this.pageEllipsisAfterTarget);
+      this.showPagingElement(this.pageEllipsisAfterTarget);
     }
   }
 
@@ -417,22 +425,30 @@ export default class DatatableController extends Controller {
     this.updatePagination();
   }
 
-  hideElement(element) {
+  hideFilterElement(element) {
+    element.classList.add('fr-hidden');
+  }
+
+  showFilterElement(element) {
+    element.classList.remove('fr-hidden');
+  }
+
+  hidePagingElement(element) {
     element.classList.add('fr-hidden');
     element.classList.remove('fr-displayed-lg');
   }
 
-  showElement(element) {
+  showPagingElement(element) {
     element.classList.add('fr-displayed-lg');
     element.classList.remove('fr-hidden');
   }
 
-  disableElement(element) {
+  disablePagingElement(element) {
     element.setAttribute('aria-disabled', 'true');
     element.removeAttribute('href');
   }
 
-  enableElement(element) {
+  enablePagingElement(element) {
     element.setAttribute('href', '#');
     element.removeAttribute('aria-disabled');
   }

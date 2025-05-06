@@ -1,16 +1,6 @@
 .tomselect {
   margin-top: 0.5rem;
-}
-
-.tomselect.focus {
-  outline-color: #0a76f6;
-  outline-offset: 2px;
-  outline-style: solid;
-  outline-width: 2px;
-}
-
-.tomselect.has-items .ts-control input:not(:focus) {
-  color: var(--idle);
+  position: relative;
 }
 
 .tomselect .ts-control {
@@ -21,9 +11,11 @@
 
 .tomselect .ts-control input {
   flex: 1;
+
   --idle: transparent;
   --hover: var(--background-contrast-grey-hover);
   --active: var(--background-contrast-grey-active);
+
   color: var(--text-default-grey);
   font-size: 1rem;
   line-height: 1.5rem;
@@ -32,6 +24,10 @@
 .tomselect .ts-control input:focus,
 .tomselect .ts-control input:focus-visible {
   outline: none;
+}
+
+.tomselect.has-items .ts-control input:not(:focus) {
+  color: var(--idle);
 }
 
 .tomselect .ts-control .item {
@@ -43,12 +39,12 @@
   background-color: var(--background-action-low-blue-france);
 }
 
-.tomselect .ts-control .fr-tag .remove{
-  margin-left:0.25rem;
+.tomselect .ts-control .fr-tag .remove {
+  margin-left: 0.25rem;
 }
 
 .tomselect .ts-control .clear-button {
-  margin-top: 0.125rem;
+  margin-top: 0;
 }
 
 .tomselect .ts-control .clear-button:hover {
@@ -57,6 +53,7 @@
 
 .tomselect .ts-dropdown {
   position: absolute;
+  background-color: var(--background-contrast-grey);
   left: 0;
   width: 100%;
   z-index: 10;
@@ -93,9 +90,3 @@
   max-height: 12rem;
   scroll-behavior: smooth;
 }
-
-/* .tomselect .item{
-    margin-top: 0.25rem;
-    margin-bottom: 0rem;
-    position: absolute;
-} */
