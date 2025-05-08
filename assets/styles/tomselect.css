@@ -30,6 +30,11 @@
   color: var(--idle);
 }
 
+.tomselect.loading .ts-dropdown .fr-icon-refresh-line{
+  display: inline-block;
+  animation: spinner 1.5s linear infinite;
+}
+
 .tomselect .ts-control .item {
   margin-top: 0.125rem;
 }
@@ -89,4 +94,10 @@
   overflow: hidden auto;
   max-height: 12rem;
   scroll-behavior: smooth;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
 }

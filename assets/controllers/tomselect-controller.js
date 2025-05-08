@@ -114,6 +114,9 @@ export default class TomSelectController extends Controller {
       no_results: function () {
         return '<div class="option">Aucun résultat</div>';
       },
+      loading: function () {
+        return '<div class="option"><span class="fr-mr-1v fr-icon--sm fr-icon-refresh-line"></span>Chargement...</div>';
+      },
     };
 
     // On crée le tomselect

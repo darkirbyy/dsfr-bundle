@@ -60,6 +60,7 @@ Exemple sans chargement dynamique : les 5 meilleures options s'affichent (même 
         'required' => true,
         'class' => Personne::class,
         'label' => 'Choisir une personne',    
+        'placeholder' => 'Taper les premières lettres du nom/prénom',
         'attr' => [
             'data-controller' => 'tomselect',
             'data-tomselect-options-value' => json_encode([
@@ -68,7 +69,6 @@ Exemple sans chargement dynamique : les 5 meilleures options s'affichent (même 
                 'create' => false,
             ]),
         ]
-        'placeholder' => 'Taper les premières lettres du nom/prénom',
     ])
 ```
 
@@ -78,7 +78,8 @@ Exemple avec chargement dynamique : les options sont renvoyées par le serveur p
  ->add('personne', ChoiceType::class, [
         'required' => true,
         'class' => Personne::class,
-        'label' => 'Choisir une personne',    
+        'label' => 'Choisir une personne',
+        'placeholder' => 'Taper les premières lettres du nom/prénom',    
         'attr' => [
             'data-controller' => 'tomselect',
             'data-tomselect-options-value' => json_encode([
@@ -86,13 +87,13 @@ Exemple avec chargement dynamique : les options sont renvoyées par le serveur p
                 'delay' => 200,
             ]),
         ]
-        'placeholder' => 'Taper les premières lettres du nom/prénom',
     ])
 ```
 
-Note :
+Note pour le chargement dynamique :
 
 - On peut autowire `UrlGeneratorInterface` pour construire automatiquement l'URL d'une route donnée et rester ainsi consistant avec le fonctionnement de Symfony
+
 - Voici un exemple PHP de la route de recherche, qui renvoie un JSON :
 
     ```php
@@ -106,4 +107,22 @@ Note :
 
         return new JsonResponse($data);
     }
+    ```
+
+- Si on utilise un `EntityType` ou un `ChoiceType`, il est préférable de rajouter `'choices' => []` dans les options afin d'éviter que Symfony ne charge toutes les options (ce qui contredirait le principe d'un chargement asynchrone). Mais dans ce cas, le champ ne passe pas la validation. On peut s'inspirer de ce code pour gérer cette situation.
+
+    ```php
+    $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+        $data = $event->getData();
+        $form = $event->getForm();
+        
+        // On vérifie que personne est dans les données soumises et on met le choix dans le champ
+        if (!empty($data['personne'])) { 
+            $options = $form->get('personne')->getConfig()->getOptions();                  
+            $personne = $this->personneRepo->find($data['personne']);
+            $options['choices'] = [$personne];
+            $form->add('personne', EntityType::class, $options);
+            
+        }
+     });
     ```
