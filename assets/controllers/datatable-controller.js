@@ -35,8 +35,8 @@ export default class DatatableController extends Controller {
   connect() {
     // Récupération des options avec valeurs par défaut
     this.paging = this.optionsValue['paging'] ?? true;
-    this.pagingLength =this.optionsValue['pagingLength'] ?? 50;
-    this.exporting =  this.optionsValue['exporting'] ?? true;
+    this.pagingLength = this.optionsValue['pagingLength'] ?? 50;
+    this.exporting = this.optionsValue['exporting'] ?? true;
     this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
     this.searchingLive = this.optionsValue['searchingLive'] ?? true;
     this.searchingLiveDelay = this.optionsValue['searchingLiveDelay'] ?? 500;

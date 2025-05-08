@@ -66,7 +66,7 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
     - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
     - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
 
-Exemple :
+## Exemples
 
 ```twig
 {% set objects = personnes %}

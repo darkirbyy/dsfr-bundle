@@ -44,11 +44,16 @@ Dans un FormType, ajouter les attributs suivants dans le `attr` des options d'un
 
 L'attribut `data-tomselect-options-value` peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
 
+- **backspace**: *bool* (optionnel, défaut true) Si vrai, l'utilisateur peut supprimer des options avec la touche "Retour arrière", sinon un bouton pour vider le champ s'affiche toute à droite
 - **number**: *int|null* (optionnel, défaut null) Nombres d'options à afficher dans le menu déroulant, null = toutes
 - **multiple**: *bool* (optionnel, défaut false) Champ à sélection multiple ou non
 - **create**: *bool* (optionnel, défaut false) Autorise l'utilisateur à créer ces propres valeurs
+- **url**: *string* (optionnel, défaut null) Si vide, toutes les options doivent être préchargées avec la page. Sinon, les options seront chargés dynamiquement via un appel AJAX sur l'URL spécifiée dès qu'au moins 3 caractères sont saisis : celle-ci reçoit un query parameter `search` égal à la valeur saisie par l'utilisateur et doit renvoyer les options possibles sous forme d'un JSON dont chaque option est un table avec les clés `value` et `text`.
+- **delay**: *int* (optionnel, défaut 500) Si les options sont dynamiquement chargés (voir **url**), temps d'attente en millisecondes avant d'envoyer une nouvelle requête au serveur
 
-Exemple :
+## Exemples
+
+Exemple sans chargement dynamique : les 5 meilleures options s'affichent (même si plus correspondent), l'utilisateur peut en choisir plusieurs mais ne peut pas en créer.
 
 ```php
  ->add('personne', EntityType::class, [
@@ -58,7 +63,7 @@ Exemple :
         'attr' => [
             'data-controller' => 'tomselect',
             'data-tomselect-options-value' => json_encode([
-                'number' => 20,
+                'number' => 5,
                 'multiple' => true,
                 'create' => false,
             ]),
@@ -66,3 +71,39 @@ Exemple :
         'placeholder' => 'Taper les premières lettres du nom/prénom',
     ])
 ```
+
+Exemple avec chargement dynamique : les options sont renvoyées par le serveur par la route `personne_search`, 200 millisecondes après saisie par l'utilisateur.
+
+```php
+ ->add('personne', ChoiceType::class, [
+        'required' => true,
+        'class' => Personne::class,
+        'label' => 'Choisir une personne',    
+        'attr' => [
+            'data-controller' => 'tomselect',
+            'data-tomselect-options-value' => json_encode([
+                'url' => $this->urlGenerator->generate('personne_search'),
+                'delay' => 200,
+            ]),
+        ]
+        'placeholder' => 'Taper les premières lettres du nom/prénom',
+    ])
+```
+
+Note :
+
+- On peut autowire `UrlGeneratorInterface` pour construire automatiquement l'URL d'une route donnée et rester ainsi consistant avec le fonctionnement de Symfony
+- Voici un exemple PHP de la route de recherche, qui renvoie un JSON :
+
+    ```php
+    #[Route('/search', name: 'personne_search')]
+    public function search(Request $request): JsonResponse
+    {
+        $search = $request->query->getString('search');
+        $data = [];
+
+        // Traitement pour calculer les données
+
+        return new JsonResponse($data);
+    }
+    ```
