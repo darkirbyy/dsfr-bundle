@@ -32,11 +32,7 @@ Pour intégrer le css et le controller stimulus au projet, ajouter les imports s
 
 ## Utilisation
 
-Le fichier qui inclut datatable doit définir les variables suivantes :
-
-- **objects**: *array* (OBLIGATOIRE) doit contenir tous les données de la table sous la forme d'un array d'objet
-
-- **customFilePath**: *string* (optionnel) chemin du ficher twig qui contient les blocks customs (voir plus bas)
+Le fichier qui inclut datatable peut définir la variable suivante :
 
 - **datatableOptions** qui définit les options globales du tableau. Il peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
   - **paging**: *bool* (optionnel, défaut true) Active ou non la pagination
@@ -47,10 +43,20 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
   - **exporting**: *bool* (optionnel, défaut true) Active ou non l'export pdf/csv
   - **exportingName**: *string* (optionnel, défaut 'Export') Nom des fichiers exportés
 
+Il y a deux méthodes pour générer le `thead` et le `tbody` du tableau : en définissant les colonnes, ou en définissant le contenu à la main.
+
+### En définissant les colonnes
+
+On rajoute les variables suivantes :
+
+- **objects**: *array* (OBLIGATOIRE) doit contenir tous les données de la table sous la forme d'un array d'objet
+- **customFilePath**: *string* (optionnel) chemin du ficher twig qui contient les blocks customs (voir plus bas)
+- **customParam**: *array* (optionnel) paramètres supplémentaire à envoyer aux blocs customs (voir plus bas)
 - **datatableColumns** est un *array d'array*, dont chaque élément définit une colonne du tableau. Chaque ligne peut contenir les clés suivantes :
   - **property**: *string* (OBLIGATOIRE) quelle propriété de l'objet doit être affichée. Peut être une sous propriété (exemple adresse.ville).
   - **label**: *string* (OBLIGATOIRE) nom de la colonne à afficher dans l'en-tête.
-  - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un block à insérer depuis le customFile, le block ayant accès à l'objet de la ligne courante dans la variable object
+  - **class**: *string* (optionnel) classes CSS à rajouter à l'en-tête de colonne.
+  - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un bloc à insérer puis le **customFilePath**, le bloc ayant accès à : object = à l'objet de la ligne courante, et param = customParam
   - **visible**: *bool* (optionnel, défaut false) la colonne doit-elle être visible ?
   - **exportable**: *bool* (optionnel, défaut true) la colonne doit-elle être affichée dans les exports csv/pdf ?
   - **exportProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour l'export (exemple statut.libelle si on formate le statut avec des tags/badges etc)
@@ -66,7 +72,16 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
     - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
     - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
 
+### En définissant le contenu
+
+On rajoute une variable **datatableContent** qui contient le html brut avec les balises `thead` et le `tbody`. Pour s'intégrer avec le controller stimulus, les cellules d'en-tête doivent avoir deux attributs :
+
+- `data-datatable-column="x"` où **x** est un nombre qui décrit le positionnement de la colonne (1, 2, 3, ...)
+- `data-datatable-target="visible exportable searchable sortable"` où l'on peut choisir une ou plusieurs des possibilités
+
 ## Exemples
+
+### En définissant par colonnes
 
 ```twig
 {% set objects = personnes %}
@@ -76,7 +91,9 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
     pagingLength: 30,
     searching: true,
     searchingLive: false,
+    searchingLiveDelay: 300,
     exporting: true,
+    exportingName: 'Listes des personnes',
 } %}
 
 {% set datatableColumns = [
@@ -89,4 +106,33 @@ Le fichier qui inclut datatable doit définir les variables suivantes :
 ] %}
 
 {{ include('@DarkirbyDsfr/component/datatable.html.twig') }}
+```
+
+### En définissant par contenu
+
+```twig
+{% set datatableOptions = {
+    paging: true,
+    pagingLength: 10,
+} %}
+
+{% set datatableContent %}
+    <thead>
+        <tr>
+            <th scope="col" data-datatable-target="visible exportable searchable" data-datatable-column="0">Nom</th>
+            <th scope="col" data-datatable-target="visible exportable searchable" data-datatable-column="1">Prénom</th>
+            <th scope="col" data-datatable-target="visible exportable" data-datatable-column="2">Lieu</th>
+            <th scope="col" data-datatable-target="visible" data-datatable-column="3">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr data-row-key="1">
+            <td>Jean</td>
+            <td>Dupont</td>
+            <td>Paris</td>
+            <td>Bouton d'action</td>
+        </tr>
+    ...
+    </tbody>
+{% endset %}
 ```

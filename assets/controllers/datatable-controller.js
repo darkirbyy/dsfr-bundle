@@ -14,11 +14,11 @@ export default class DatatableController extends Controller {
     'exportPdfButton',
     'visible',
     'exportable',
+    'sortable',
+    'filtrable',
     'searchable',
     'searchInput',
     'searchButton',
-    'filtrable',
-    'sortable',
     'pageFirst',
     'pagePrev',
     'pageEllipsisBefore',
@@ -41,6 +41,7 @@ export default class DatatableController extends Controller {
     this.pagingLength = this.optionsValue['pagingLength'] ?? 50;
     this.exporting = this.optionsValue['exporting'] ?? true;
     this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
+    this.searching = this.optionsValue['searching'] ?? true;
     this.searchingLive = this.optionsValue['searchingLive'] ?? true;
     this.searchingLiveDelay = this.optionsValue['searchingLiveDelay'] ?? 500;
 
@@ -58,8 +59,10 @@ export default class DatatableController extends Controller {
 
     // Définir les colonnes de recherche
     let searchColumns = Array();
+    this.searchLabels = Array();
     this.searchableTargets.forEach((element) => {
       searchColumns.push(this.getColumnIndex(element));
+      this.searchLabels.push(this.getExportHeader(element).toLowerCase());
     });
 
     // Recupère la table elle-même
@@ -173,9 +176,12 @@ export default class DatatableController extends Controller {
   }
 
   setupSearchListeners() {
-    if (!this.exporting) {
+    if (!this.searching) {
       return;
     }
+
+    // On complète le placeholder avec le nom des colonnes sur lesquelles porte la recherche
+    this.searchInputTarget.setAttribute('placeholder', 'Recherche sur ' + this.searchLabels.join(' - '));
 
     // Initialisation de la recherche
     this.updateSearch();
@@ -461,7 +467,13 @@ export default class DatatableController extends Controller {
   }
 
   getExportHeader(node) {
-    return node.querySelector('.fr-cell__title').innerText;
+    const title = node.querySelector('.fr-cell__title');
+    return (title !== null) ? title.innerText : node.innerText;
+  }
+
+  getExportBody(data, node) {
+    const exportValue = node.getAttribute('data-export');
+    return (exportValue !== null) ? exportValue : data;
   }
 
   getExportPdfCustomization(doc) {
@@ -492,13 +504,5 @@ export default class DatatableController extends Controller {
     };
   }
 
-  getExportBody(data, node) {
-    const exportValue = node.getAttribute('data-export');
 
-    if (exportValue !== null) {
-      return exportValue;
-    }
-
-    return data;
-  }
 }
