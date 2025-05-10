@@ -5,6 +5,9 @@ import 'datatables.net-buttons/js/buttons.html5';
 import 'pdfmake';
 import '../javascripts/vfs-marianne.js';
 
+/*
+ * Ce controller qui connecte les évènements datatable aux différents boutons dsfr (pagination, recherche, export)
+ */
 export default class DatatableController extends Controller {
   static targets = [
     'exportCsvButton',

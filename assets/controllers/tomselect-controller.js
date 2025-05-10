@@ -1,6 +1,9 @@
 import { Controller } from '@hotwired/stimulus';
 import TomSelect from 'tom-select';
 
+/*
+ * Ce controller initialise tomselect pour les champs d'autocomplétion
+ */
 export default class TomSelectController extends Controller {
   static values = {
     options: Object,
