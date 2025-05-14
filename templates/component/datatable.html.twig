@@ -23,7 +23,7 @@
     <div class="fr-table__wrapper">
       <div class="fr-table__container">
         <div class="fr-table__content">
-          <table>
+          <table class="fr-cell--multiline">
             {% if datatableContent is defined %}
               {{ datatableContent|raw }}
             {% else %}
@@ -36,7 +36,9 @@
                     %}
                     {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
                     {% set data_param %}
-                      data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}"{% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
+                      scope="col" data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}"
+                      
+                      {% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
                         data-datatable-sort-init="{{ column.sortInit }}"
                       {% endif %}
                       {% if column.class is defined %}

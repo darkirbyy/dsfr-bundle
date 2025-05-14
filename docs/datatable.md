@@ -42,6 +42,7 @@ Le fichier qui inclut datatable peut définir la variable suivante :
   - **searchingLiveDelay**: *int* (optionnel, défaut true) Délai en millisecondes avant de déclencher une recherche live
   - **exporting**: *bool* (optionnel, défaut true) Active ou non l'export pdf/csv
   - **exportingName**: *string* (optionnel, défaut 'Export') Nom des fichiers exportés
+  - **exportingLandscape**: *bool* (optionnel, défaut false) Exporter en format paysage si oui, sinon en format portrait
 
 Il y a deux méthodes pour générer le `thead` et le `tbody` du tableau : en définissant les colonnes, ou en définissant le contenu à la main.
 
@@ -76,7 +77,7 @@ On rajoute les variables suivantes :
 
 On rajoute une variable **datatableContent** qui contient le html brut avec les balises `thead` et le `tbody`. Pour s'intégrer avec le controller stimulus, les cellules d'en-tête doivent avoir deux attributs :
 
-- `data-datatable-column="x"` où **x** est un nombre qui décrit le positionnement de la colonne (1, 2, 3, ...)
+- `data-datatable-column="x"` où **x** est un nombre qui décrit le positionnement de la colonne (0, 1, 2, ...)
 - `data-datatable-target="visible exportable searchable sortable"` où l'on peut choisir une ou plusieurs des possibilités
 
 ## Exemples

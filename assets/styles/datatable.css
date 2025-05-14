@@ -1,4 +1,4 @@
-.datatable .datatable-space-between{
+.datatable .datatable-space-between {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -45,6 +45,7 @@
   color: var(--text-default-grey) !important;
   font-size: 0.875rem;
   line-height: 1.5rem;
+  white-space: nowrap;
 }
 
 .datatable .datatable-filter button {
@@ -100,4 +101,3 @@
   --hover: inherit;
   --active: inherit;
 }
-

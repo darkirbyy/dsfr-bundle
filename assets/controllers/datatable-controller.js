@@ -41,6 +41,7 @@ export default class DatatableController extends Controller {
     this.pagingLength = this.optionsValue['pagingLength'] ?? 50;
     this.exporting = this.optionsValue['exporting'] ?? true;
     this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
+    this.exportingLandscape = this.optionsValue['exportingLandscape'] ?? false;
     this.searching = this.optionsValue['searching'] ?? true;
     this.searchingLive = this.optionsValue['searchingLive'] ?? true;
     this.searchingLiveDelay = this.optionsValue['searchingLiveDelay'] ?? 500;
@@ -82,6 +83,7 @@ export default class DatatableController extends Controller {
       pagingType: 'simple',
       searching: true,
       ordering: true,
+      order: [],
       orderCellsTop: true,
       columnDefs: [
         { orderable: false, targets: '_all' }, // géré manuellement
@@ -486,6 +488,8 @@ export default class DatatableController extends Controller {
         },
       ];
     };
+
+    doc.pageOrientation = this.exportingLandscape ? 'landscape' : 'portrait';
 
     doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1)
       .join('*')
