@@ -470,7 +470,7 @@ export default class DatatableController extends Controller {
 
   getExportHeader(node) {
     const title = node.querySelector('.fr-cell__title');
-    return (title !== null) ? title.innerText : node.innerText;
+    return (title !== null) ? title.textContent : node.textContent;
   }
 
   getExportBody(data, node) {

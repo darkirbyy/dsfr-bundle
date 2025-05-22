@@ -1,11 +1,12 @@
 .tomselect {
   margin-top: 0.5rem;
   position: relative;
+  max-height: initial !important;
 }
 
 .tomselect .ts-control {
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   gap: 0.5rem;
 }
 
@@ -30,7 +31,7 @@
   color: var(--idle);
 }
 
-.tomselect.loading .ts-dropdown .fr-icon-refresh-line{
+.tomselect.loading .ts-dropdown .fr-icon-refresh-line {
   display: inline-block;
   animation: spinner 1.5s linear infinite;
 }
