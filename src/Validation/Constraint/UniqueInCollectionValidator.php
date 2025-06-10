@@ -10,7 +10,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 class UniqueInCollectionValidator extends ConstraintValidator
 {
-    public function validate($collection, Constraint $constraint) : void
+    public function validate($collection, Constraint $constraint): void
     {
         // Vérifiez que la contrainte est bien du type UniqueInCollection
         if (!$constraint instanceof UniqueInCollection) {

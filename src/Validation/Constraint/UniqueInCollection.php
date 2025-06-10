@@ -6,6 +6,11 @@ namespace Darkirby\DsfrBundle\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
 
+/**
+ *  On aimerait utiliser  #[Assert\Unique(fields: ['xxx'])] mais Unique ne marche pas avec des collections d'objets...
+ *  De plus la contrainte UniqueEntity n'est pas suffisante avec une collection car elle n'est vérifié que contre les éléments déjà en base.
+ *  Enfin le UniqueConstraint ne permet pas d'avoir une erreur sur le formulaire mais juste une exception Doctrine !
+ */
 #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class UniqueInCollection extends Constraint
 {

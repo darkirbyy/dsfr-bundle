@@ -507,6 +507,4 @@ export default class DatatableController extends Controller {
       fontSize: 9,
     };
   }
-
-
 }

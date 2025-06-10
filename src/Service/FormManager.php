@@ -6,7 +6,6 @@ namespace App\Service;
 
 use Doctrine\DBAL\Exception\ConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Exception\ORMException;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
@@ -20,8 +19,12 @@ class FormManager
 {
     private FlashBagInterface $flashBag;
 
-    public function __construct(private EntityManagerInterface $entityManager, private RequestStack $requestStack, private CsrfTokenManagerInterface $csrfTokenManager)
-    {
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private RequestStack $requestStack,
+        private CsrfTokenManagerInterface $csrfTokenManager,
+        private ExceptionManager $exceptionManager,
+    ) {
         $this->flashBag = $requestStack->getSession()->getFlashBag();
     }
 
@@ -48,7 +51,7 @@ class FormManager
         return false;
     }
 
-        /**
+    /**
      * Vérifie le jeton CSRF et persiste l'entité avec un message personnalisé optionnel en cas de réussite.
      * Affiche un message d'erreur sinon.
      *
@@ -113,12 +116,14 @@ class FormManager
             $this->entityManager->persist($object);
             $this->entityManager->flush();
 
-            $flashSuccess ??= 'Enregistrement effectué avec succès';
-            $this->flashBag->add('success', $flashSuccess);
+            if (!empty($flashSuccess)) {
+                $this->flashBag->add('success', $flashSuccess);
+            }
 
             return true;
-        } catch (ORMException|ConstraintViolationException $e) {
-            $this->flashBag->add('error', $e->getMessage());
+        } catch (ConstraintViolationException $e) {
+            $message = $this->exceptionManager->handleDatabase($e);
+            $this->flashBag->add('error', $message);
 
             return false;
         }
@@ -139,12 +144,14 @@ class FormManager
             $this->entityManager->remove($object);
             $this->entityManager->flush();
 
-            $flashSuccess ??= 'Suppression effectuée avec succès';
-            $this->flashBag->add('success', $flashSuccess);
+            if (!empty($flashSuccess)) {
+                $this->flashBag->add('success', $flashSuccess);
+            }
 
             return true;
-        } catch (ORMException $e) {
-            $this->flashBag->add('error', $e->getMessage());
+        } catch (ConstraintViolationException $e) {
+            $message = $this->exceptionManager->handleDatabase($e);
+            $this->flashBag->add('error', $message);
 
             return false;
         }
@@ -179,10 +186,10 @@ class FormManager
             $name = $parent->getName();
             $label = $parent->getConfig()->getOption('label');
 
-            if (null === $label) {
+            if (empty($label)) {
                 continue;
             } elseif (false === $label) {
-                $label = "$name";
+                $label = $name;
             }
 
             $array = [];
