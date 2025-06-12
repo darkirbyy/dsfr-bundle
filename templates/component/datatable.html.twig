@@ -36,9 +36,8 @@
                     %}
                     {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
                     {% set data_param %}
-                      scope="col" data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}"
-                      
-                      {% if column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
+                      scope="col" data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}"{% if
+                        column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
                         data-datatable-sort-init="{{ column.sortInit }}"
                       {% endif %}
                       {% if column.class is defined %}
@@ -60,28 +59,31 @@
                               Filtrer par
                               {{ column.label|lower }}
                             </button>
-                            <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" role="menu">
-                              {# Détermine le type de filtre et les valeurs initialement cochées #}
-                              {% set filterType = column.filterType is defined and column.filterType in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
-                              {% set filterInit = column.filterInit is defined ? column.filterInit : [] %}
-                              {% if filterType == 'radio' and filterInit is empty %}
-                                {% set filterInit = [column.filterChoices|first] %}
-                              {% endif %}
-
+                            {# Détermine le type de filtre et les valeurs initialement cochées #}
+                            {% set filterType = column.filterType is defined and column.filterType in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
+                            {% set filterMode = column.filterMode is defined and column.filterMode in ['range', 'normal'] ? column.filterMode : 'normal' %}
+                            {% set filterInit = column.filterInit is defined ? column.filterInit : [] %}
+                            {% if filterType == 'radio' and filterInit is empty %}
+                              {% set filterInit = [column.filterChoices|first] %}
+                            {% endif %}
+                            <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" data-datatable-filter-mode="{{ filterMode }}" role="menu">
                               {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et préselectionne certaines selon filterInit #}
                               {% for filterChoice in column.filterChoices %}
                                 {% set filterChoiceId = filterId ~ '-' ~ loop.index0 %}
-                                {% set is_checked = (filterType == 'checkbox' and filterChoice not in filterInit) or (filterType == 'radio' and filterChoice in filterInit) %}
+                                {% set is_checked = (filterType == 'checkbox' and filterChoice.label not in filterInit)
+                                  or (filterType == 'radio' and filterChoice.label in filterInit)
+                                %}
                                 <div class="fr-fieldset__element">
                                   <div class="fr-{{ filterType }}-group fr-{{ filterType }}-group--sm">
-                                    <input
-                                      name="{{ filterId }}"
-                                      id="{{ filterChoiceId }}"
-                                      type="{{ filterType }}"
-                                      data-datatable-value="{{ filterChoice }}"
-                                      {{ is_checked ? 'checked' }}
-                                    />
-                                    <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice is not empty ? filterChoice : '<em>Vide</em>' }}</label>
+                                    {% set input_param %}
+                                      {% if filterMode == 'range' %}
+                                        data-datatable-value-min="{{ filterChoice.valueMin }}" data-datatable-value-max="{{ filterChoice.valueMax }}"
+                                      {% else %}
+                                        data-datatable-value="{{ filterChoice.value }}"
+                                      {% endif %}
+                                    {% endset %}
+                                    <input name="{{ filterId }}" id="{{ filterChoiceId }}" type="{{ filterType }}" {{ is_checked ? 'checked' }} {{ input_param }} />
+                                    <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice.label is not empty ? filterChoice.label : '<em>Vide</em>' }}</label>
                                   </div>
                                 </div>
                               {% endfor %}
@@ -128,7 +130,7 @@
                       {# Valeur affichée #}
                       <td {{ data_param }}>
                         {% if column.custom|default(false) %}
-                          {% with { path: customFilePath, block: column.property, object: object, param: customParam|default({}) } only %}
+                          {% with { path: customFilePath, block: column.property, object: object, param: customParam|default({ }) } only %}
                           {{ block(block, path) }}
                           {% endwith %}
                         {% else %}

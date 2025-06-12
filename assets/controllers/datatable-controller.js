@@ -243,6 +243,7 @@ export default class DatatableController extends Controller {
       const button = element.querySelector('[id^="datatable-filter"]');
       const fieldset = element.querySelector('fieldset');
       const checkboxes = fieldset.querySelectorAll('input[type]');
+      const mode = fieldset.getAttribute('data-datatable-filter-mode');
 
       // Affiche ou ferme le menu de filtrage quand on clique sur le bouton
       button.addEventListener('click', () => {
@@ -256,28 +257,51 @@ export default class DatatableController extends Controller {
       });
 
       // Initialisation du tableau de valeur autorisées pour le filtre
-      this.updateFilter(checkboxes, columnIndex);
+      this.updateFilter(checkboxes, columnIndex, mode);
 
       // Ajouter une recherche fixe, par layer. Ne pas utiliser cell qui est vide car la recherche globale sur ce champ est désactivé !
       this.dataApi.column(columnIndex).search.fixed('filter' + columnIndex.toString(), (cell, data) => {
-        return this.filterValues[columnIndex].includes(data[columnIndex]['@data-filter']);
+        const cellValue = data[columnIndex]['@data-filter'];
+        if (mode == 'range') {
+          const cellNumber = parseFloat(cellValue);
+          // Si la valeur n'est pas un nombre valide, on l'exclut
+          if (isNaN(cellNumber)) {
+            return false;
+          }
+          // Sinon, elle doit être dans au moins un des intervalles
+          return this.filterValues[columnIndex].some((range) => {
+            return cellNumber >= range.min && cellNumber <= range.max;
+          });
+        } else {
+          return this.filterValues[columnIndex].includes(cellValue);
+        }
       });
 
       // Ajout des écouteurs pour les cases à cocher
       checkboxes.forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
-          this.updateFilter(checkboxes, columnIndex);
+          this.updateFilter(checkboxes, columnIndex, mode);
           this.performRedraw();
         });
       });
     });
   }
 
-  updateFilter(checkboxes, columnIndex) {
-    // Mettre à jour les valeurs autorisées pour le filtre
-    this.filterValues[columnIndex] = Array.from(checkboxes)
-      .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.getAttribute('data-datatable-value'));
+  updateFilter(checkboxes, columnIndex, mode) {
+    // Mettre à jour les valeurs autorisées pour le filtre, selon le mode
+    const checkedCheckboxes = Array.from(checkboxes).filter((checkbox) => checkbox.checked);
+    if (mode == 'range') {
+      this.filterValues[columnIndex] = checkedCheckboxes.map((checkbox) => {
+        return {
+          min: parseFloat(checkbox.getAttribute('data-datatable-value-min')),
+          max: parseFloat(checkbox.getAttribute('data-datatable-value-max')),
+        };
+      });
+    } else {
+      this.filterValues[columnIndex] = checkedCheckboxes.map((checkbox) =>
+        checkbox.getAttribute('data-datatable-value')
+      );
+    }
   }
 
   setupSortListeners() {
@@ -470,12 +494,12 @@ export default class DatatableController extends Controller {
 
   getExportHeader(node) {
     const title = node.querySelector('.fr-cell__title');
-    return (title !== null) ? title.textContent : node.textContent;
+    return title !== null ? title.textContent : node.textContent;
   }
 
   getExportBody(data, node) {
     const exportValue = node.getAttribute('data-export');
-    return (exportValue !== null) ? exportValue : data;
+    return exportValue !== null ? exportValue : data;
   }
 
   getExportPdfCustomization(doc) {

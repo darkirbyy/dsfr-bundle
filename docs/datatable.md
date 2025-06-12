@@ -66,9 +66,14 @@ On rajoute les variables suivantes :
   - **sortProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le tri (exemple date.timestamp si on formate la date autrement)
   - **sortInit**: *asc*|desc|none (optionnel, défaut none) la colonne doit-elle être triée par défaut ? Attention, ne doit être placé que sur une seule colonne
   - **filtrable**: *bool* (optionnel, défaut false) la colonne doit-elle être filtrable ?
-  - **filterChoices**: *array[string]* (OBLIGATOIRE si filtrable est vrai) les différents choix de filtrage
   - **filterProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le filtrage (exemple statut.libelle si on formate le statut avec des tags/badges etc)
   - **filterType**: *checkbox|radio* (optionnel, défaut checkbox) filtrage avec choix unique (radio buttons) ou multiple (checbox buttons)
+  - **filterMode**: *normal|range* (optionnel, défaut normal) filtrage par égalité de valeur ou par appartenance à un intervalle
+  - **filterChoices**: *array[array]* (OBLIGATOIRE si filtrable est vrai) les différents choix de filtrage, dont chaque élément est un aray contenant :
+    - **label** : *string* (OBLIGATOIRE) : le libellé à afficher
+    - **value** : *string* (OBLIGATOIRE si filterMode = 'normal') : la valeur à comparer
+    - **valueMin** : *string* (OBLIGATOIRE si filterMode = 'range') : la borne inférieure à comparer
+    - **valueMax** : *string* (OBLIGATOIRE si filterMode = 'range') : la borne supérieure à comparer
   - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, dépend de filterType
     - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
     - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
