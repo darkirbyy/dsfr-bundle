@@ -42,6 +42,7 @@ export default class DatatableController extends Controller {
     this.exporting = this.optionsValue['exporting'] ?? true;
     this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
     this.exportingLandscape = this.optionsValue['exportingLandscape'] ?? false;
+    this.exportingStretch = this.optionsValue['exportingStretch'] ?? true;
     this.searching = this.optionsValue['searching'] ?? true;
     this.searchingLive = this.optionsValue['searchingLive'] ?? true;
     this.searchingLiveDelay = this.optionsValue['searchingLiveDelay'] ?? 500;
@@ -515,9 +516,9 @@ export default class DatatableController extends Controller {
 
     doc.pageOrientation = this.exportingLandscape ? 'landscape' : 'portrait';
 
-    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1)
-      .join('*')
-      .split('');
+    if (this.exportingStretch) {
+      doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+    }
 
     doc.styles.tableHeader = {
       alignment: 'left',

@@ -43,6 +43,7 @@ Le fichier qui inclut datatable peut définir la variable suivante :
   - **exporting**: *bool* (optionnel, défaut true) Active ou non l'export pdf/csv
   - **exportingName**: *string* (optionnel, défaut 'Export') Nom des fichiers exportés
   - **exportingLandscape**: *bool* (optionnel, défaut false) Exporter en format paysage si oui, sinon en format portrait
+  - **exportingStretch**: *bool* (optionnel, défaut true) Etendre la taille des colonnes pour remplir toute la largeur de la page
 
 Il y a deux méthodes pour générer le `thead` et le `tbody` du tableau : en définissant les colonnes, ou en définissant le contenu à la main.
 
@@ -75,7 +76,7 @@ On rajoute les variables suivantes :
     - **value** : *string* (OBLIGATOIRE si filterMode = 'normal') : la valeur à comparer
     - **valueMin** : *string* (OBLIGATOIRE si filterMode = 'range') : la borne inférieure à comparer
     - **valueMax** : *string* (OBLIGATOIRE si filterMode = 'range') : la borne supérieure à comparer
-  - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, dépend de filterType
+  - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, dépend de filterType :
     - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
     - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
 
