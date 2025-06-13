@@ -124,7 +124,13 @@
                       {% set selectId = 'datatable-select-' ~ loop.index %}
                       <th class="fr-cell--fixed" scope="row">
                         <div class="fr-checkbox-group fr-checkbox-group--sm">
-                          <input data-fr-row-select="true" id="{{ selectId }}" type="checkbox" />
+                          <input
+                            data-fr-row-select="true"
+                            id="{{ selectId }}"
+                            type="checkbox"
+                            data-datatable-target="selectCheckbox"
+                            data-datatable-row-id="{{ attribute_deep(object, datatableOptions.selectingProperty|default('id'))|trim }}"
+                          />
                           <label class="fr-label" for="{{ selectId }}">{{ loop.index }}</label>
                         </div>
                       </th>

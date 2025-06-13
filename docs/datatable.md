@@ -37,6 +37,8 @@ Le fichier qui inclut datatable peut définir la variable suivante :
 - **datatableOptions** qui définit les options globales du tableau. Il peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
   - **paging**: *bool* (optionnel, défaut true) Active ou non la pagination
   - **pagingLength**: *int* (optionnel, défaut 50) Nombre de lignes par page
+  - **selecting**: *bool* (optionnel, défaut false) Active ou non la colonne de sélection des lignes
+  - **selectingProperty**: *string* (optionnel, défaut 'id') La propriété de l'objet à stocker lors de la sélection d'une ligne
   - **searching**: *bool* (optionnel, défaut true) Active ou non la zone de recherche
   - **searchingLive**: *bool* (optionnel, défaut true) Active ou non la recherche live, dès que l'utilisateur tape dans la zone de recherche
   - **searchingLiveDelay**: *int* (optionnel, défaut true) Délai en millisecondes avant de déclencher une recherche live

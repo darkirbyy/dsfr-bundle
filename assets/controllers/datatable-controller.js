@@ -19,6 +19,7 @@ export default class DatatableController extends Controller {
     'searchable',
     'searchInput',
     'searchButton',
+    'selectCheckbox',
     'pageFirst',
     'pagePrev',
     'pageEllipsisBefore',
@@ -39,6 +40,7 @@ export default class DatatableController extends Controller {
     // Récupération des options avec valeurs par défaut
     this.paging = this.optionsValue['paging'] ?? true;
     this.pagingLength = this.optionsValue['pagingLength'] ?? 50;
+    this.selecting = this.optionsValue['selecting'] ?? false;
     this.exporting = this.optionsValue['exporting'] ?? true;
     this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
     this.exportingLandscape = this.optionsValue['exportingLandscape'] ?? false;
@@ -66,6 +68,9 @@ export default class DatatableController extends Controller {
       searchColumns.push(this.getColumnIndex(element));
       this.searchLabels.push(this.getExportHeader(element).toLowerCase());
     });
+
+    // Récupère toutes les case à cochées de sélection avant qu'elles soient enlevées du DOM
+    this.selectCheckboxes = this.selectCheckboxTargets;
 
     // Recupère la table elle-même
     const tableElement = this.element.querySelector('table');
@@ -140,6 +145,9 @@ export default class DatatableController extends Controller {
 
     // Initialiser le tri
     this.setupSortListeners();
+
+    // Initialiser la sélection
+    this.setupSelectListeners();
 
     // Initialiser la pagination
     this.setupPaginationListeners();
@@ -315,7 +323,7 @@ export default class DatatableController extends Controller {
       const button = element.querySelector('[id^="datatable-sort"]');
       const initDirection = element.getAttribute('data-datatable-sort-init');
 
-      // Initialisation du tri s'il es définit
+      // Initialisation du tri s'il est définit
       if (initDirection) {
         this.performSort(button, columnIndex, initDirection);
       }
@@ -346,6 +354,42 @@ export default class DatatableController extends Controller {
       element.querySelector('[id^="datatable-sort"]').removeAttribute('aria-sort');
     });
     button.setAttribute('aria-sort', newDirection + 'ending');
+  }
+
+  setupSelectListeners() {
+    if (!this.selecting) {
+      return;
+    }
+
+    // this.selectAllCheckboxTarget.addEventListener('change', (event) => {
+
+    // });
+
+    // Tableau qui stocke l'id des lignes sélectionnées
+    this.selectedRowId = Array();
+
+    // On initialise avec les cases cochées au chargement + ajout des écouteurs quand on coche/décoche
+    this.selectCheckboxes.forEach((element) => {
+      this.updateSelect(element);
+      element.addEventListener('change', (event) => {
+        this.updateSelect(event.target);
+        this.updateRecords();
+      });
+    });
+  }
+
+  updateSelect(checkbox) {
+    const rowId = checkbox.getAttribute('data-datatable-row-id');
+    if (checkbox.checked) {
+      if (!this.selectedRowId.includes(rowId)) {
+        this.selectedRowId.push(rowId);
+      }
+    } else {
+      const index = this.selectedRowId.indexOf(rowId);
+      if (index > -1) {
+        this.selectedRowId.splice(index, 1);
+      }
+    }
   }
 
   setupPaginationListeners() {
@@ -443,13 +487,22 @@ export default class DatatableController extends Controller {
   }
 
   updateRecords() {
-    // Recupère le nombre de lignes affichées (sans compter la pagination)
+    // Recupère le nombre de lignes affichées et sélectionnées (sans compter la pagination)
     const pageInfo = this.dataApi.page.info();
     const records = pageInfo.recordsDisplay;
-
-    // Met à jour la valeur dans la page
+    const selects = this.selectedRowId.length;
     let recordsNum = records.toString();
-    this.recordsTarget.textContent = recordsNum + ' ligne' + (records > 1 ? 's' : '');
+    let selectsNum = selects.toString();
+    console.log(this.selectedRowId);
+
+    let textContent = '';
+    if (this.selecting) {
+      let plural = selects > 1 ? 's' : '';
+      textContent += selectsNum + ' ligne' + plural + ' sélectionnée' + plural + ' sur ';
+    }
+    textContent += recordsNum + ' ligne' + (records > 1 ? 's' : '');
+
+    this.recordsTarget.textContent = textContent;
   }
 
   performRedraw() {
