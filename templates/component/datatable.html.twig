@@ -29,14 +29,19 @@
             {% else %}
               <thead>
                 <tr>
+                  {# En-tête de la colonne de sélection #}
+                  {% if datatableOptions.selecting ?? false %}
+                    <th class="fr-cell--fixed" role="columnheader" data-datatable-column="0" data-datatable-target="visible"><span class="fr-sr-only">Sélectionner</span></th>
+                  {% endif %}
+
                   {% for column in datatableColumns %}
                     {% set target = (column.visible ?? true ? 'visible') ~ (column.exportable ?? true ? ' exportable') ~ (column.searchable ?? false ? ' searchable')
                       ~ (column.sortable ?? false ? ' sortable')
                       ~ (column.filtrable ?? false ? ' filtrable')
                     %}
-                    {# En-tête de colonne avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
+                    {# En-tête des colonnes définies avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
                     {% set data_param %}
-                      scope="col" data-datatable-column="{{ loop.index0 }}" data-datatable-target="{{ target }}"{% if
+                      scope="col" data-datatable-column="{{ datatableOptions.selecting ?? false ? loop.index : loop.index0 }}" data-datatable-target="{{ target }}"{% if
                         column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
                         data-datatable-sort-init="{{ column.sortInit }}"
                       {% endif %}
@@ -47,7 +52,7 @@
 
                     <th {{ data_param }}>
                       <div class="fr-cell--sort">
-                        {# Libellé de la colonne #}
+                        {# Libellé de la colonne avec tooltip ou non #}
                         {% if column.tooltip is defined %}
                           {% set tooltipId = 'datatable-tooltip-' ~ loop.index0 %}
                           <span class="fr-cell__title" aria-describedby="{{ tooltipId }}">{{ column.label }}</span>
@@ -114,6 +119,17 @@
                 {# Une nouvelle ligne pour chaque objet #}
                 {% for object in objects %}
                   <tr data-row-key="{{ loop.index }}">
+                    {# Première colonne de sélection #}
+                    {% if datatableOptions.selecting ?? false %}
+                      {% set selectId = 'datatable-select-' ~ loop.index %}
+                      <th class="fr-cell--fixed" scope="row">
+                        <div class="fr-checkbox-group fr-checkbox-group--sm">
+                          <input data-fr-row-select="true" id="{{ selectId }}" type="checkbox" />
+                          <label class="fr-label" for="{{ selectId }}">{{ loop.index }}</label>
+                        </div>
+                      </th>
+                    {% endif %}
+                    {# Autres colonnes de valeurs définies #}
                     {% for column in datatableColumns %}
                       {# HTML data param #}
                       {% set data_param %}

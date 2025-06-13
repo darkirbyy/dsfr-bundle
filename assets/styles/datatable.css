@@ -26,6 +26,10 @@
   margin-left: 0.5rem !important;
 }
 
+.datatable .fr-cell--fixed {
+  width: 1%;
+}
+
 .datatable .datatable-filter {
   position: relative;
 }

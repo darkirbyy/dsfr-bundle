@@ -78,7 +78,7 @@ export default class DatatableController extends Controller {
         bottomStart: null,
         bottomEnd: null,
       },
-      autoWidth: true,
+      autoWidth: false,
       paging: this.paging,
       pageLength: this.pagingLength,
       pagingType: 'simple',
