@@ -56,6 +56,7 @@ On rajoute les variables suivantes :
 - **datatableColumns** est un *array d'array*, dont chaque élément définit une colonne du tableau. Chaque ligne peut contenir les clés suivantes :
   - **property**: *string* (OBLIGATOIRE) quelle propriété de l'objet doit être affichée. Peut être une sous propriété (exemple adresse.ville).
   - **label**: *string* (OBLIGATOIRE) nom de la colonne à afficher dans l'en-tête.
+  - **tooltip**: *string* (optionnel) texte de description supplémentaire qui s'affichera en infobule
   - **class**: *string* (optionnel) classes CSS à rajouter à l'en-tête de colonne.
   - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un bloc à insérer puis le **customFilePath**, le bloc ayant accès à : object = à l'objet de la ligne courante, et param = customParam
   - **visible**: *bool* (optionnel, défaut false) la colonne doit-elle être visible ?

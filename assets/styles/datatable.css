@@ -18,6 +18,10 @@
   flex: 1;
 }
 
+.datatable .fr-cell__title[aria-describedby] {
+  text-decoration: underline dotted;
+}
+
 .datatable .fr-btn--sort {
   margin-left: 0.5rem !important;
 }
