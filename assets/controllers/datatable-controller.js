@@ -74,10 +74,10 @@ export default class DatatableController extends Controller {
     this.selectCheckboxes = this.selectCheckboxTargets;
 
     // Recupère la table elle-même
-    const tableElement = this.element.querySelector('table');
+    this.tableElement = this.element.querySelector('table');
 
     // Initialiser DataTable avec une configuration adaptée
-    this.dataTable = new DataTable(tableElement, {
+    this.dataTable = new DataTable(this.tableElement, {
       layout: {
         topStart: null,
         topEnd: null,
@@ -133,7 +133,7 @@ export default class DatatableController extends Controller {
     });
 
     // Récupération de l'api
-    this.dataApi = new DataTable.Api(tableElement);
+    this.dataApi = new DataTable.Api(this.tableElement);
 
     // Initialiser les boutons d'export
     this.setupExportListeners();
@@ -374,6 +374,9 @@ export default class DatatableController extends Controller {
 
     // Tableau qui stocke l'id des lignes sélectionnées
     this.selectedRowId = Array();
+    this.selectEvent = new CustomEvent(this.tableElement.id + '-select', {
+      detail: { selectedRowId: this.selectedRowId },
+    });
 
     // On initialise avec les cases cochées au chargement + ajout des écouteurs quand on coche/décoche
     this.selectCheckboxes.forEach((element) => {
@@ -415,6 +418,7 @@ export default class DatatableController extends Controller {
 
   updateAllSelect() {
     this.selectAllCheckboxTarget.checked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
+    window.dispatchEvent(this.selectEvent);
   }
 
   setupPaginationListeners() {

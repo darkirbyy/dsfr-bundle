@@ -25,7 +25,7 @@
     <div class="fr-table__wrapper">
       <div class="fr-table__container">
         <div class="fr-table__content">
-          <table class="fr-cell--multiline">
+          <table class="fr-cell--multiline" id="{{ datatableId }}">
             {% if datatableContent is defined %}
               {{ datatableContent|raw }}
             {% else %}
