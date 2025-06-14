@@ -79,7 +79,10 @@
                             {% if filterType == 'radio' and filterInit is empty %}
                               {% set filterInit = [column.filterChoices|first] %}
                             {% endif %}
+
                             <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" data-datatable-filter-mode="{{ filterMode }}" role="menu">
+                              <a href="#" class="fr-link fr-link--sm">Tout décocher</a>
+
                               {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et préselectionne certaines selon filterInit #}
                               {% for filterChoice in column.filterChoices %}
                                 {% set filterChoiceId = filterId ~ '-choice-' ~ loop.index0 %}

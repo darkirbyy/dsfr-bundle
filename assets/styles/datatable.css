@@ -34,13 +34,18 @@
   position: relative;
 }
 
+.datatable .datatable-filter .fr-link{
+  font-weight: normal;
+  white-space: nowrap;
+}
+
 .datatable .datatable-filter fieldset {
   transform: translateX(calc(2rem - 100%));
   position: absolute;
   margin: 0;
   padding: 0.5rem;
   z-index: 10;
-  max-height: 12rem;
+  max-height: 22rem;
   overflow: auto;
 }
 

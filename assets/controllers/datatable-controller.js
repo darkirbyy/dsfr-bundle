@@ -251,6 +251,7 @@ export default class DatatableController extends Controller {
       const columnIndex = this.getColumnIndex(element);
       const button = element.querySelector('[data-datatable-button="filter"]');
       const fieldset = element.querySelector('fieldset');
+      const link = element.querySelector('a');
       const checkboxes = fieldset.querySelectorAll('input[type]');
       const mode = fieldset.getAttribute('data-datatable-filter-mode');
 
@@ -266,7 +267,7 @@ export default class DatatableController extends Controller {
       });
 
       // Initialisation du tableau de valeur autorisées pour le filtre
-      this.updateFilter(checkboxes, columnIndex, mode);
+      this.updateFilter(checkboxes, columnIndex, link, mode);
 
       // Ajouter une recherche fixe, par layer. Ne pas utiliser cell qui est vide car la recherche globale sur ce champ est désactivé !
       this.dataApi.column(columnIndex).search.fixed('filter' + columnIndex.toString(), (cell, data) => {
@@ -289,14 +290,22 @@ export default class DatatableController extends Controller {
       // Ajout des écouteurs pour les cases à cocher
       checkboxes.forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
-          this.updateFilter(checkboxes, columnIndex, mode);
+          this.updateFilter(checkboxes, columnIndex, link, mode);
           this.performRedraw();
         });
+      });
+
+      // Ajout l'écouter pour le lien tout (dé)cocher
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        checkboxes.forEach((checkbox) => (checkbox.checked = this.filterValues[columnIndex].length == 0));
+        this.updateFilter(checkboxes, columnIndex, link, mode);
+        this.performRedraw();
       });
     });
   }
 
-  updateFilter(checkboxes, columnIndex, mode) {
+  updateFilter(checkboxes, columnIndex, link, mode) {
     // Mettre à jour les valeurs autorisées pour le filtre, selon le mode
     const checkedCheckboxes = Array.from(checkboxes).filter((checkbox) => checkbox.checked);
     if (mode == 'range') {
@@ -311,6 +320,7 @@ export default class DatatableController extends Controller {
         checkbox.getAttribute('data-datatable-value')
       );
     }
+    link.textContent = this.filterValues[columnIndex].length == 0 ? 'Tout cocher' : 'Tout décocher';
   }
 
   setupSortListeners() {
