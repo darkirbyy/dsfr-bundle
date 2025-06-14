@@ -20,6 +20,7 @@ export default class DatatableController extends Controller {
     'searchInput',
     'searchButton',
     'selectCheckbox',
+    'selectAllCheckbox',
     'pageFirst',
     'pagePrev',
     'pageEllipsisBefore',
@@ -371,10 +372,6 @@ export default class DatatableController extends Controller {
       return;
     }
 
-    // this.selectAllCheckboxTarget.addEventListener('change', (event) => {
-
-    // });
-
     // Tableau qui stocke l'id des lignes sélectionnées
     this.selectedRowId = Array();
 
@@ -383,8 +380,21 @@ export default class DatatableController extends Controller {
       this.updateSelect(element);
       element.addEventListener('change', (event) => {
         this.updateSelect(event.target);
+        this.updateAllSelect();
         this.updateRecords();
       });
+    });
+
+    // On initialise la case à cocher toutes les lignes visibles + ajout écouter quand on coche/décooche
+    this.updateAllSelect();
+    this.selectAllCheckboxTarget.addEventListener('change', () => {
+      const selectCheckboxChecked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
+      this.selectCheckboxTargets.forEach((checkbox) => {
+        checkbox.checked = selectCheckboxChecked == 0 ? true : false;
+        this.updateSelect(checkbox);
+      });
+      this.updateAllSelect();
+      this.updateRecords();
     });
   }
 
@@ -400,6 +410,11 @@ export default class DatatableController extends Controller {
         this.selectedRowId.splice(index, 1);
       }
     }
+    checkbox.closest('tr').setAttribute('aria-selected', checkbox.checked);
+  }
+
+  updateAllSelect() {
+    this.selectAllCheckboxTarget.checked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
   }
 
   setupPaginationListeners() {
@@ -423,6 +438,7 @@ export default class DatatableController extends Controller {
         if (!event.currentTarget.hasAttribute('aria-disabled')) {
           this.dataApi.page(apiEvent).draw('page');
           this.updatePagination();
+          this.updateAllSelect();
         }
       });
     });
@@ -503,7 +519,6 @@ export default class DatatableController extends Controller {
     const selects = this.selectedRowId.length;
     let recordsNum = records.toString();
     let selectsNum = selects.toString();
-    console.log(this.selectedRowId);
 
     let textContent = '';
     if (this.selecting) {

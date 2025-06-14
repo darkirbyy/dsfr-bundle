@@ -33,7 +33,14 @@
                 <tr>
                   {# En-tête de la colonne de sélection #}
                   {% if datatableOptions.selecting ?? false %}
-                    <th class="fr-cell--fixed" role="columnheader" data-datatable-column="0" data-datatable-target="visible"><span class="fr-sr-only">Sélectionner</span></th>
+                    {% set selectAllId = datatableId ~ '-select-all' %}
+
+                    <th class="fr-cell--fixed" role="columnheader" data-datatable-column="0" data-datatable-target="visible">
+                      <div class="fr-checkbox-group fr-checkbox-group--sm">
+                        <input id="{{ selectAllId }}" type="checkbox" data-datatable-target="selectAllCheckbox" />
+                        <label class="fr-label" for="{{ selectAllId }}">Tous</label>
+                      </div>
+                    </th>
                   {% endif %}
 
                   {% for column in datatableColumns %}
@@ -123,7 +130,7 @@
               <tbody>
                 {# Une nouvelle ligne pour chaque objet #}
                 {% for object in objects %}
-                  <tr data-row-key="{{ loop.index }}">
+                  <tr data-row-key="{{ loop.index }}" style="--row-height: 50px;">
                     {# Première colonne de sélection #}
                     {% if datatableOptions.selecting ?? false %}
                       {% set selectId = datatableId ~ '-select-' ~ loop.index %}
