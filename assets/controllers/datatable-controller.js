@@ -249,7 +249,7 @@ export default class DatatableController extends Controller {
     this.filterValues = Array();
     this.filtrableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
-      const button = element.querySelector('[id^="datatable-filter"]');
+      const button = element.querySelector('[data-datatable-button="filter"]');
       const fieldset = element.querySelector('fieldset');
       const checkboxes = fieldset.querySelectorAll('input[type]');
       const mode = fieldset.getAttribute('data-datatable-filter-mode');
@@ -320,7 +320,7 @@ export default class DatatableController extends Controller {
 
     this.sortableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
-      const button = element.querySelector('[id^="datatable-sort"]');
+      const button = element.querySelector('[data-datatable-button="sort"]');
       const initDirection = element.getAttribute('data-datatable-sort-init');
 
       // Initialisation du tri s'il est définit
@@ -351,7 +351,7 @@ export default class DatatableController extends Controller {
 
     // Mettre à jour les attributs Aria
     this.sortableTargets.forEach((element) => {
-      element.querySelector('[id^="datatable-sort"]').removeAttribute('aria-sort');
+      element.querySelector('[data-datatable-button="sort"]').removeAttribute('aria-sort');
     });
     button.setAttribute('aria-sort', newDirection + 'ending');
   }

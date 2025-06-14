@@ -32,7 +32,9 @@ Pour intégrer le css et le controller stimulus au projet, ajouter les imports s
 
 ## Utilisation
 
-Le fichier qui inclut datatable peut définir la variable suivante :
+Le fichier qui inclut datatable peut définir les variables suivantes :
+
+- **datatableId** : *string* (optionnel, défaut 'datatable-0', mais OBLIGATOIRE si plusieurs datatable sont inclus dans la même page) un identifiant unique
 
 - **datatableOptions** qui définit les options globales du tableau. Il peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
   - **paging**: *bool* (optionnel, défaut true) Active ou non la pagination

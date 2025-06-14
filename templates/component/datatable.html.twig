@@ -1,5 +1,7 @@
 {% from '@DarkirbyDsfr/component/macro.html.twig' import attribute_deep, data_param %}
 
+{% set datatableId = datatableId is defined ? datatableId : 'datatable-0' %}
+
 <div class="datatable" data-controller="datatable" data-datatable-options-value="{{ datatableOptions|default({ paging: true })|json_encode }}">
   <div class="datatable-space-between">
     <div class="datatable-search">
@@ -54,7 +56,7 @@
                       <div class="fr-cell--sort">
                         {# Libellé de la colonne avec tooltip ou non #}
                         {% if column.tooltip is defined %}
-                          {% set tooltipId = 'datatable-tooltip-' ~ loop.index0 %}
+                          {% set tooltipId = datatableId ~ '-tooltip-' ~ loop.index0 %}
                           <span class="fr-cell__title" aria-describedby="{{ tooltipId }}">{{ column.label }}</span>
                           <span class="fr-tooltip fr-placement" id="{{ tooltipId }}" role="tooltip" aria-hidden="true">{{ column.tooltip }}</span>
                         {% else %}
@@ -63,10 +65,10 @@
 
                         {# Bouton + menu pour une colonne filtrable #}
                         {% if column.filtrable ?? false %}
-                          {% set filterId = 'datatable-filter-' ~ loop.index0 %}
+                          {% set filterId = datatableId ~ '-filter-' ~ loop.index0 %}
                           <div class="datatable-filter">
                             {# Bouton pour afficher/cacher le menu contenant les filtres #}
-                            <button type="button" id="{{ filterId }}" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
+                            <button type="button" id="{{ filterId }}" data-datatable-button="filter" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
                               Filtrer par
                               {{ column.label|lower }}
                             </button>
@@ -80,7 +82,7 @@
                             <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" data-datatable-filter-mode="{{ filterMode }}" role="menu">
                               {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et préselectionne certaines selon filterInit #}
                               {% for filterChoice in column.filterChoices %}
-                                {% set filterChoiceId = filterId ~ '-' ~ loop.index0 %}
+                                {% set filterChoiceId = filterId ~ '-choice-' ~ loop.index0 %}
                                 {% set is_checked = (filterType == 'checkbox' and filterChoice.label not in filterInit)
                                   or (filterType == 'radio' and filterChoice.label in filterInit)
                                 %}
@@ -104,8 +106,8 @@
 
                         {# Bouton + menu pour une colonne triable #}
                         {% if column.sortable ?? false %}
-                          {% set sortId = 'datatable-sort-' ~ loop.index0 %}
-                          <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" id="{{ sortId }}">
+                          {% set sortId = datatableId ~ '-sort-' ~ loop.index0 %}
+                          <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" data-datatable-button="sort" id="{{ sortId }}">
                             Trier par
                             {{ column.label|lower }}
                           </button>
@@ -121,7 +123,7 @@
                   <tr data-row-key="{{ loop.index }}">
                     {# Première colonne de sélection #}
                     {% if datatableOptions.selecting ?? false %}
-                      {% set selectId = 'datatable-select-' ~ loop.index %}
+                      {% set selectId = datatableId ~ '-select-' ~ loop.index %}
                       <th class="fr-cell--fixed" scope="row">
                         <div class="fr-checkbox-group fr-checkbox-group--sm">
                           <input
