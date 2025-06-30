@@ -106,7 +106,7 @@
                                       {% endif %}
                                     {% endset %}
                                     <input name="{{ filterId }}" id="{{ filterChoiceId }}" type="{{ filterType }}" {{ is_checked ? 'checked' }} {{ input_param }} />
-                                    <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice.label is not empty ? filterChoice.label : '<em>Vide</em>' }}</label>
+                                    <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice.label }}</label>
                                   </div>
                                 </div>
                               {% endfor %}
@@ -188,9 +188,12 @@
     </div>
   </div>
 
-  <div class="datatable-space-between">
-    <div class="fr-mx-3v fr-text--sm" data-datatable-target="records">
-      x lignes
+  <div class="datatable-space-between datatable-flex-start">
+    <div class="fr-mx-3v fr-text--sm">
+      <span data-datatable-target="infoRecords">y à z lignes affichées sur t</span>
+      {% if datatableOptions.selecting ?? false %}
+        <br /><span data-datatable-target="infoSelects">x lignes sélectionnées</span>
+      {% endif %}
     </div>
     {% if datatableOptions.paging ?? true %}
       <nav role="navigation" class="fr-pagination" aria-label="Pagination">

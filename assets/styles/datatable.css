@@ -5,8 +5,16 @@
   align-items: flex-end;
 }
 
+.datatable .datatable-flex-start {
+  align-items: flex-start;
+}
+
 .datatable .fr-table {
   margin-bottom: 0.5rem !important;
+}
+
+.datatable:has([aria-expanded='true']) tbody {
+  height: 15rem;
 }
 
 .datatable .datatable-search {
@@ -32,9 +40,10 @@
 
 .datatable .datatable-filter {
   position: relative;
+  margin-left: 0.5rem;
 }
 
-.datatable .datatable-filter .fr-link{
+.datatable .datatable-filter .fr-link {
   font-weight: normal;
   white-space: nowrap;
 }
@@ -45,7 +54,7 @@
   margin: 0;
   padding: 0.5rem;
   z-index: 10;
-  max-height: 22rem;
+  max-height: 15rem;
   overflow: auto;
 }
 

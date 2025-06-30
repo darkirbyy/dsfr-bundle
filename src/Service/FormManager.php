@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Exception\DatabaseException;
 use Doctrine\DBAL\Exception\ConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\ORMInvalidArgumentException;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
@@ -17,7 +19,7 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
  */
 class FormManager
 {
-    private FlashBagInterface $flashBag;
+    private ?FlashBagInterface $flashBag = null;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -25,7 +27,10 @@ class FormManager
         private CsrfTokenManagerInterface $csrfTokenManager,
         private ExceptionManager $exceptionManager,
     ) {
-        $this->flashBag = $requestStack->getSession()->getFlashBag();
+        // On vérifie si on a une session disponible, sinon on est en CLI
+        if ($this->requestStack->getSession() && $this->requestStack->getMainRequest()) {
+            $this->flashBag = $this->requestStack->getSession()->getFlashBag();
+        }
     }
 
     /**
@@ -63,13 +68,7 @@ class FormManager
      */
     public function checkTokenAndPersist(string $tokenName, object $object, ?string $flashSuccess = null): bool
     {
-        $tokenValue = $this->requestStack
-            ->getCurrentRequest()
-            ->getPayload()
-            ->get($tokenName . '_token');
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $tokenValue))) {
-            $this->flashBag->add('error', 'Jeton CSRF invalide.');
-
+        if (!$this->checkToken($tokenName)) {
             return false;
         }
 
@@ -88,13 +87,7 @@ class FormManager
      */
     public function checkTokenAndRemove(string $tokenName, object $object, ?string $flashSuccess = null): bool
     {
-        $tokenValue = $this->requestStack
-            ->getCurrentRequest()
-            ->getPayload()
-            ->get($tokenName . '_token');
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $tokenValue))) {
-            $this->flashBag->add('error', 'Jeton CSRF invalide.');
-
+        if (!$this->checkToken($tokenName)) {
             return false;
         }
 
@@ -108,7 +101,7 @@ class FormManager
      * @param object $object       l'entité à persister
      * @param array  $flashSuccess le message flash à afficher en cas de succès
      *
-     * @return bool vrai si l'entité a pu être persister, faux sinon
+     * @return bool vrai si l'entité a pu être persistée, faux sinon
      */
     public function persist(object $object, ?string $flashSuccess = null): bool
     {
@@ -116,14 +109,16 @@ class FormManager
             $this->entityManager->persist($object);
             $this->entityManager->flush();
 
-            if (!empty($flashSuccess)) {
+            if (!empty($this->flashBag) && !empty($flashSuccess)) {
                 $this->flashBag->add('success', $flashSuccess);
             }
 
             return true;
-        } catch (ConstraintViolationException $e) {
+        } catch (DatabaseException|ConstraintViolationException|ORMInvalidArgumentException $e) {
             $message = $this->exceptionManager->handleDatabase($e);
-            $this->flashBag->add('error', $message);
+            if (!empty($this->flashBag)) {
+                $this->flashBag->add('error', $message);
+            }
 
             return false;
         }
@@ -136,7 +131,7 @@ class FormManager
      * @param object $object       l'entité à supprimer
      * @param array  $flashSuccess le message flash à afficher en cas de succès
      *
-     * @return bool vrai si l'entité a pu être supprimé, faux sinon
+     * @return bool vrai si l'entité a pu être supprimée, faux sinon
      */
     public function remove(object $object, ?string $flashSuccess = null): bool
     {
@@ -144,14 +139,101 @@ class FormManager
             $this->entityManager->remove($object);
             $this->entityManager->flush();
 
-            if (!empty($flashSuccess)) {
+            if (!empty($this->flashBag) && !empty($flashSuccess)) {
                 $this->flashBag->add('success', $flashSuccess);
             }
 
             return true;
-        } catch (ConstraintViolationException $e) {
+        } catch (DatabaseException|ConstraintViolationException|ORMInvalidArgumentException $e) {
             $message = $this->exceptionManager->handleDatabase($e);
-            $this->flashBag->add('error', $message);
+            if (!empty($this->flashBag)) {
+                $this->flashBag->add('error', $message);
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * Vérifie le jeton CSRF et ajoute un message flash d'erreur si ce n'est pas le cas.
+     *
+     * @param string $tokenName le nom du jeton CSRF, sans le suffixe _token (attribut "name" en HTML ou 'csrf_field_name' => ... en PHP)
+     *
+     * @return bool vrai si la vérification , faux sinon
+     */
+    public function checkToken(string $tokenName): bool
+    {
+        $tokenFullName = $tokenName . '_token';
+        $tokenValue = $this->requestStack->getCurrentRequest()->getPayload()->get($tokenFullName);
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $tokenValue))) {
+            if (!empty($this->flashBag)) {
+                $this->flashBag->add('error', 'Jeton CSRF invalide.');
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Persiste un tableau d'entités en base en un seul flush, avec un message personnalisé optionnel en cas de réussite.
+     * Attrape les erreurs ORMs et les affiche dans le message flash en cas d'erreur.
+     *
+     * @param array $flashSuccess le message flash à afficher en cas de succès
+     *
+     * @return bool vrai si l'ensemble des entités ont pu être persistées, faux sinon
+     */
+    public function massPersist(array $objects, ?string $flashSuccess = null): bool
+    {
+        try {
+            foreach ($objects as $object) {
+                $this->entityManager->persist($object);
+            }
+            $this->entityManager->flush();
+
+            if (!empty($this->flashBag) && !empty($flashSuccess)) {
+                $this->flashBag->add('success', $flashSuccess);
+            }
+
+            return true;
+        } catch (DatabaseException|ConstraintViolationException|ORMInvalidArgumentException $e) {
+            $message = $this->exceptionManager->handleDatabase($e);
+            if (!empty($this->flashBag)) {
+                $this->flashBag->add('error', $message);
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * Supprime un tableau d'entités en base en un seul flush, avec un message personnalisé optionnel en cas de réussite.
+     * Attrape les erreurs ORMs et les affiche dans le message flash en cas d'erreur.
+     *
+     * @param array $objects      le tableau d'entités à supprimer
+     * @param array $flashSuccess le message flash à afficher en cas de succès
+     *
+     * @return bool vrai si l'ensemble des entités ont pu être supprimées, faux sinon
+     */
+    public function massRemove(array $objects, ?string $flashSuccess = null): bool
+    {
+        try {
+            foreach ($objects as $object) {
+                $this->entityManager->remove($object);
+            }
+            $this->entityManager->flush();
+
+            if (!empty($this->flashBag) && !empty($flashSuccess)) {
+                $this->flashBag->add('success', $flashSuccess);
+            }
+
+            return true;
+        } catch (DatabaseException|ConstraintViolationException|ORMInvalidArgumentException $e) {
+            $message = $this->exceptionManager->handleDatabase($e);
+            if (!empty($this->flashBag)) {
+                $this->flashBag->add('error', $message);
+            }
 
             return false;
         }
@@ -165,8 +247,12 @@ class FormManager
     public function generateErrorsFlash(FormInterface $form): void
     {
         $errorLinks = self::determineErrorLinks($form);
-        $flashWarning = count($errorLinks) > 1 ? 'Le formulaire contient des erreurs de saisies. Champs : ' : 'Le formulaire contient une erreur de saisie. Champ : ';
-        $this->flashBag->add('warning', $flashWarning . implode(', ', $errorLinks));
+        if (count($errorLinks) > 0) {
+            $flashWarning = count($errorLinks) > 1 ? 'Le formulaire contient des erreurs de saisies. Champs : ' : 'Le formulaire contient une erreur de saisie. Champ : ';
+            if (!empty($this->flashBag)) {
+                $this->flashBag->add('warning', $flashWarning . implode(', ', $errorLinks));
+            }
+        }
     }
 
     /**

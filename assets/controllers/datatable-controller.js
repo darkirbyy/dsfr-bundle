@@ -30,7 +30,8 @@ export default class DatatableController extends Controller {
     'pageEllipsisAfter',
     'pageNext',
     'pageLast',
-    'records',
+    'infoSelects',
+    'infoRecords',
   ];
 
   static values = {
@@ -242,7 +243,9 @@ export default class DatatableController extends Controller {
       this.filtrableTargets.forEach((element) => {
         const datatableFilter = element.querySelector('.datatable-filter');
         if (datatableFilter != closestDatatableFilter) {
-          this.hideFilterElement(datatableFilter.querySelector('fieldset'));
+          const fieldset = datatableFilter.querySelector('fieldset');
+          const button = datatableFilter.querySelector('button');
+          this.hideFilterElement(fieldset, button);
         }
       });
     });
@@ -259,11 +262,9 @@ export default class DatatableController extends Controller {
       // Affiche ou ferme le menu de filtrage quand on clique sur le bouton
       button.addEventListener('click', () => {
         if (fieldset.classList.contains('fr-hidden')) {
-          button.setAttribute('aria-expanded', true);
-          this.showFilterElement(fieldset);
+          this.showFilterElement(fieldset, button);
         } else {
-          button.setAttribute('aria-expanded', false);
-          this.hideFilterElement(fieldset);
+          this.hideFilterElement(fieldset, button);
         }
       });
 
@@ -384,7 +385,7 @@ export default class DatatableController extends Controller {
       element.addEventListener('change', (event) => {
         this.updateSelect(event.target);
         this.updateAllSelect();
-        this.updateRecords();
+        this.updateInfoSelects();
       });
     });
 
@@ -397,7 +398,7 @@ export default class DatatableController extends Controller {
         this.updateSelect(checkbox);
       });
       this.updateAllSelect();
-      this.updateRecords();
+      this.updateInfoSelects();
     });
   }
 
@@ -417,6 +418,9 @@ export default class DatatableController extends Controller {
   }
 
   updateAllSelect() {
+    if (!this.selecting) {
+      return;
+    }
     this.selectAllCheckboxTarget.checked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
     window.dispatchEvent(this.selectEvent);
   }
@@ -443,6 +447,7 @@ export default class DatatableController extends Controller {
           this.dataApi.page(apiEvent).draw('page');
           this.updatePagination();
           this.updateAllSelect();
+          this.updateInfoRecords();
         }
       });
     });
@@ -516,22 +521,29 @@ export default class DatatableController extends Controller {
     }
   }
 
-  updateRecords() {
-    // Recupère le nombre de lignes affichées et sélectionnées (sans compter la pagination)
-    const pageInfo = this.dataApi.page.info();
-    const records = pageInfo.recordsDisplay;
-    const selects = this.selectedRowId.length;
-    let recordsNum = records.toString();
-    let selectsNum = selects.toString();
-
-    let textContent = '';
+  updateInfoSelects() {
+    // Récupère les lignes sélectionnés et affiche le nombre
     if (this.selecting) {
-      let plural = selects > 1 ? 's' : '';
-      textContent += selectsNum + ' ligne' + plural + ' sélectionnée' + plural + ' sur ';
+      const selects = this.selectedRowId.length;
+      this.infoSelectsTarget.textContent = 'Sélection : ' + selects.toString() + ' ligne' + (selects > 1 ? 's' : '');
     }
-    textContent += recordsNum + ' ligne' + (records > 1 ? 's' : '');
+  }
 
-    this.recordsTarget.textContent = textContent;
+  updateInfoRecords() {
+    // Recupère le nombre de lignes affichées et sélectionnées (sans compter la pagination)
+    let textContent = 'Affichage : ';
+    const pageInfo = this.dataApi.page.info();
+
+    if (this.paging) {
+      const start = pageInfo.start + 1;
+      const end = pageInfo.end;
+      textContent += start.toString() + ' à ' + end.toString() + ' sur ';
+    }
+
+    const records = pageInfo.recordsDisplay;
+    textContent += records.toString() + ' ligne' + (records > 1 ? 's' : '');
+
+    this.infoRecordsTarget.textContent = textContent;
   }
 
   performRedraw() {
@@ -539,16 +551,19 @@ export default class DatatableController extends Controller {
     this.dataApi.draw('full-reset');
 
     // Mettre à jour la pagination et le nombre de lignes
-    this.updateRecords();
     this.updatePagination();
+    this.updateInfoSelects();
+    this.updateInfoRecords();
   }
 
-  hideFilterElement(element) {
-    element.classList.add('fr-hidden');
+  hideFilterElement(fieldset, button) {
+    fieldset.classList.add('fr-hidden');
+    button.setAttribute('aria-expanded', false);
   }
 
-  showFilterElement(element) {
-    element.classList.remove('fr-hidden');
+  showFilterElement(fieldset, button) {
+    fieldset.classList.remove('fr-hidden');
+    button.setAttribute('aria-expanded', true);
   }
 
   hidePagingElement(element) {
