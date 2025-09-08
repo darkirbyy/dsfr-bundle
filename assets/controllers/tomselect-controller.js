@@ -15,6 +15,7 @@ export default class TomSelectController extends Controller {
     const multiple = this.optionsValue['multiple'] ?? false;
     const backspace = this.optionsValue['backspace'] ?? true;
     const create = this.optionsValue['create'] ?? false;
+    const autoopen = this.optionsValue['autoopen'] ?? false;
     const url = this.optionsValue['url'] ?? null;
     const delay = this.optionsValue['delay'] ?? 500;
 
@@ -41,7 +42,7 @@ export default class TomSelectController extends Controller {
       plugins: plugins,
       closeAfterSelect: true,
       create: create,
-      openOnFocus: false,
+      openOnFocus: autoopen,
       hidePlaceholder: false,
       loadThrottle: url ? delay : null,
     };

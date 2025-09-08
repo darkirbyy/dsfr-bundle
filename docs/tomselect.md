@@ -48,6 +48,7 @@ L'attribut `data-tomselect-options-value` peut-être omis pour utiliser toutes l
 - **number**: *int|null* (optionnel, défaut null) Nombres d'options à afficher dans le menu déroulant, null = toutes
 - **multiple**: *bool* (optionnel, défaut false) Champ à sélection multiple ou non
 - **create**: *bool* (optionnel, défaut false) Autorise l'utilisateur à créer ces propres valeurs
+- **autoopen**: *bool* (optionnel, défaut false) Ouvre automatiquement le dropdown avec les différents choix
 - **url**: *string* (optionnel, défaut null) Si vide, toutes les options doivent être préchargées avec la page. Sinon, les options seront chargés dynamiquement via un appel AJAX sur l'URL spécifiée dès qu'au moins 3 caractères sont saisis : celle-ci reçoit un query parameter `search` égal à la valeur saisie par l'utilisateur et doit renvoyer les options possibles sous forme d'un JSON dont chaque option est un table avec les clés `value` et `text`.
 - **delay**: *int* (optionnel, défaut 500) Si les options sont dynamiquement chargés (voir **url**), temps d'attente en millisecondes avant d'envoyer une nouvelle requête au serveur
 
