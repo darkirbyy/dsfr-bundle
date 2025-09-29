@@ -90,21 +90,19 @@
                             <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" data-datatable-filter-mode="{{ filterMode }}" role="menu">
                               <a href="#" class="fr-link fr-link--sm">Tout décocher</a>
 
-                              {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et préselectionne certaines selon filterInit #}
+                              {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et présélectionne certaines selon filterInit #}
                               {% for filterChoice in column.filterChoices %}
                                 {% set filterChoiceId = filterId ~ '-choice-' ~ loop.index0 %}
-                                {% set is_checked = (filterType == 'checkbox' and filterChoice.label not in filterInit)
-                                  or (filterType == 'radio' and filterChoice.label in filterInit)
-                                %}
+                                {% set is_checked = filterInit is empty or filterChoice.label in filterInit %}
+                                {% set input_param %}
+                                  {% if filterMode == 'range' %}
+                                    data-global--datatable-value-min="{{ filterChoice.valueMin }}" data-global--datatable-value-max="{{ filterChoice.valueMax }}"
+                                  {% else %}
+                                    data-global--datatable-value="{{ filterChoice.value }}"
+                                  {% endif %}
+                                {% endset %}
                                 <div class="fr-fieldset__element">
                                   <div class="fr-{{ filterType }}-group fr-{{ filterType }}-group--sm">
-                                    {% set input_param %}
-                                      {% if filterMode == 'range' %}
-                                        data-datatable-value-min="{{ filterChoice.valueMin }}" data-datatable-value-max="{{ filterChoice.valueMax }}"
-                                      {% else %}
-                                        data-datatable-value="{{ filterChoice.value }}"
-                                      {% endif %}
-                                    {% endset %}
                                     <input name="{{ filterId }}" id="{{ filterChoiceId }}" type="{{ filterType }}" {{ is_checked ? 'checked' }} {{ input_param }} />
                                     <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice.label }}</label>
                                   </div>
@@ -170,7 +168,7 @@
                       {# Valeur affichée #}
                       <td {{ data_param }}>
                         {% if column.custom|default(false) %}
-                          {% with { path: customFilePath, block: column.property, object: object, param: customParam|default({ }) } only %}
+                          {% with { path: customFilePath, block: column.property, object: object, param: customParam|default({}) } only %}
                           {{ block(block, path) }}
                           {% endwith %}
                         {% else %}

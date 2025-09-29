@@ -70,7 +70,7 @@ On rajoute les variables suivantes :
   - **searchable**: *bool* (optionnel, défaut false) la colonne doit-elle être cherchable ?
   - **sortable**: *bool* (optionnel, défaut false) la colonne doit-elle être triable ?
   - **sortProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le tri (exemple date.timestamp si on formate la date autrement)
-  - **sortInit**: *asc*|desc|none (optionnel, défaut none) la colonne doit-elle être triée par défaut ? Attention, ne doit être placé que sur une seule colonne
+  - **sortInit**: *asc|desc|none* (optionnel, défaut none) la colonne doit-elle être triée par défaut ? Attention, ne doit être placé que sur une seule colonne
   - **filtrable**: *bool* (optionnel, défaut false) la colonne doit-elle être filtrable ?
   - **filterProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour le filtrage (exemple statut.libelle si on formate le statut avec des tags/badges etc)
   - **filterType**: *checkbox|radio* (optionnel, défaut checkbox) filtrage avec choix unique (radio buttons) ou multiple (checbox buttons)
@@ -80,9 +80,9 @@ On rajoute les variables suivantes :
     - **value** : *string* (OBLIGATOIRE si filterMode = 'normal') : la valeur à comparer
     - **valueMin** : *string* (OBLIGATOIRE si filterMode = 'range') : la borne inférieure à comparer
     - **valueMax** : *string* (OBLIGATOIRE si filterMode = 'range') : la borne supérieure à comparer
-  - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, dépend de filterType :
-    - si filterType = 'checkbox', tous les choix sont cochés par défaut, mais ceux dans filterInit sont décochés
-    - si filterType = 'radio', filterInit ne doit contenir qu'une valeur qui sera celle cochée par défaut
+  - **filterInit**: *array[string]* (optionnel, défaut []) état initial du filtrage, doit contenir les labels des filterChoices à activer. Si laissé vide :
+    - si filterType = 'checkbox', tous les choix sont cochés par défaut
+    - si filterType = 'radio', le premier choix est coché par d"faut
 
 ### En définissant le contenu
 
