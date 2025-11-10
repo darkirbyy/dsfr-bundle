@@ -27,16 +27,23 @@ Pour intégrer le css et le controller stimulus au projet, ajouter les imports s
     import DatatableController from '../vendor/darkirby/dsfr-bundle/assets/controllers/datatable-controller.js';
 
     [...]
-    app.register('datatable', DatatableController);
+    app.register('global--datatable', DatatableController);
+    ```
+
+- dans `services.yaml` pour les fonctions Twig :
+
+    ```yaml
+        Darkirby\DsfrBundle\Extension\TwigExtension:
+            tags:
+                - { name: twig.extension }
     ```
 
 ## Utilisation
 
 Le fichier qui inclut datatable peut définir les variables suivantes :
 
-- **datatableId** : *string* (optionnel, défaut 'datatable-0', mais OBLIGATOIRE si plusieurs datatable sont inclus dans la même page) un identifiant unique
-
-- **datatableOptions** qui définit les options globales du tableau. Il peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
+- **datatableOptions** *array* (OBLIGATOIRE) définit les options globales du tableau. Il peut contenir les clés suivantes :
+  - **id**: *string* (OBLIGATOIRE) identifiant unique du tableau
   - **paging**: *bool* (optionnel, défaut true) Active ou non la pagination
   - **pagingLength**: *int* (optionnel, défaut 50) Nombre de lignes par page
   - **selecting**: *bool* (optionnel, défaut false) Active ou non la colonne de sélection des lignes
@@ -47,7 +54,7 @@ Le fichier qui inclut datatable peut définir les variables suivantes :
   - **exporting**: *bool* (optionnel, défaut true) Active ou non l'export pdf/csv
   - **exportingName**: *string* (optionnel, défaut 'Export') Nom des fichiers exportés
   - **exportingLandscape**: *bool* (optionnel, défaut false) Exporter en format paysage si oui, sinon en format portrait
-  - **exportingStretch**: *bool* (optionnel, défaut true) Etendre la taille des colonnes pour remplir toute la largeur de la page
+  - **exportingStretch**: *bool* (optionnel, défaut true) Étendre la taille des colonnes pour remplir toute la largeur de la page
 
 Il y a deux méthodes pour générer le `thead` et le `tbody` du tableau : en définissant les colonnes, ou en définissant le contenu à la main.
 
@@ -55,15 +62,19 @@ Il y a deux méthodes pour générer le `thead` et le `tbody` du tableau : en d�
 
 On rajoute les variables suivantes :
 
-- **objects**: *array* (OBLIGATOIRE) doit contenir tous les données de la table sous la forme d'un array d'objet
-- **customFilePath**: *string* (optionnel) chemin du ficher twig qui contient les blocks customs (voir plus bas)
-- **customParam**: *array* (optionnel) paramètres supplémentaire à envoyer aux blocs customs (voir plus bas)
+- **datatableObjects**: *array* (OBLIGATOIRE) doit contenir tous les données de la table sous la forme d'un array d'objet
+
+- **datatableCustom** *array* (OBLIGATOIRE si custom = true pour une des colonnes, voir plus bas) définit les paramètres des colonnes custom. Il peut contenir les clés suivantes :
+  - **filePath**: *string* (OBLIGATOIRE) chemin du ficher twig qui contient les blocks customs
+  - **param**: *array* (optionnel) paramètres supplémentaire à envoyer aux blocs customs
+<!-- - **attributeMode** : *normal|deep* (optionnel, défaut normal) utiliser 'deep' pour accéder à des sous propriétés (par exemple 'ville.adresse.rue'), mais plus lent -->
+
 - **datatableColumns** est un *array d'array*, dont chaque élément définit une colonne du tableau. Chaque ligne peut contenir les clés suivantes :
   - **property**: *string* (OBLIGATOIRE) quelle propriété de l'objet doit être affichée. Peut être une sous propriété (exemple adresse.ville).
   - **label**: *string* (OBLIGATOIRE) nom de la colonne à afficher dans l'en-tête.
-  - **tooltip**: *string* (optionnel) texte de description supplémentaire qui s'affichera en infobule
+  - **tooltip**: *string* (optionnel) texte de description supplémentaire qui s'affichera en infobulle
   - **class**: *string* (optionnel) classes CSS à rajouter à l'en-tête de colonne.
-  - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un bloc à insérer puis le **customFilePath**, le bloc ayant accès à : object = à l'objet de la ligne courante, et param = customParam
+  - **custom**: *bool* (optionnel, défaut false) dans ce cas, property est le nom d'un bloc à insérer puis le **filePath**, le bloc ayant accès à : object (= l'objet de la ligne courante) et param
   - **visible**: *bool* (optionnel, défaut false) la colonne doit-elle être visible ?
   - **exportable**: *bool* (optionnel, défaut true) la colonne doit-elle être affichée dans les exports csv/pdf ?
   - **exportProperty**: *string* (optionnel, défaut null) quelle propriété de l'objet doit être utiliser pour l'export (exemple statut.libelle si on formate le statut avec des tags/badges etc)
@@ -88,15 +99,15 @@ On rajoute les variables suivantes :
 
 On rajoute une variable **datatableContent** qui contient le html brut avec les balises `thead` et le `tbody`. Pour s'intégrer avec le controller stimulus, les cellules d'en-tête doivent avoir deux attributs :
 
-- `data-datatable-column="x"` où **x** est un nombre qui décrit le positionnement de la colonne (0, 1, 2, ...)
-- `data-datatable-target="visible exportable searchable sortable"` où l'on peut choisir une ou plusieurs des possibilités
+- `data-global--datatable-column="x"` où **x** est un nombre qui décrit le positionnement de la colonne (0, 1, 2, ...)
+- `data-global--datatable-target="visible exportable searchable sortable"` où l'on peut choisir une ou plusieurs des possibilités
 
 ## Exemples
 
 ### En définissant par colonnes
 
 ```twig
-{% set objects = personnes %}
+{% set datatableObjects = personnes %}
 
 {% set datatableOptions = {
     paging: true,
@@ -107,6 +118,8 @@ On rajoute une variable **datatableContent** qui contient le html brut avec les 
     exporting: true,
     exportingName: 'Listes des personnes',
 } %}
+
+{% set datatableCustom = { filePath: 'personne/colonne.html.twig' } %}
 
 {% set datatableColumns = [
     { property: 'lieu.nom', label: 'Lieu', sortable: true },
@@ -131,10 +144,10 @@ On rajoute une variable **datatableContent** qui contient le html brut avec les 
 {% set datatableContent %}
     <thead>
         <tr>
-            <th scope="col" data-datatable-target="visible exportable searchable" data-datatable-column="0">Nom</th>
-            <th scope="col" data-datatable-target="visible exportable searchable" data-datatable-column="1">Prénom</th>
-            <th scope="col" data-datatable-target="visible exportable" data-datatable-column="2">Lieu</th>
-            <th scope="col" data-datatable-target="visible" data-datatable-column="3">Actions</th>
+            <th scope="col" data-global--datatable-target="visible exportable searchable" data-global--datatable-column="0">Nom</th>
+            <th scope="col" data-global--datatable-target="visible exportable searchable" data-global--datatable-column="1">Prénom</th>
+            <th scope="col" data-global--datatable-target="visible exportable" data-global--datatable-column="2">Lieu</th>
+            <th scope="col" data-global--datatable-target="visible" data-global--datatable-column="3">Actions</th>
         </tr>
     </thead>
     <tbody>

@@ -1,22 +1,39 @@
-{% from '@DarkirbyDsfr/component/macro.html.twig' import attribute_deep, data_param %}
+{% set datatableOptions =
+  {
+    paging: true,
+    pagingLength: 50,
+    selecting: false,
+    selectingProperty: 'id',
+    exporting: true,
+    exportingName: 'Export',
+    exportingLandscape: false,
+    exportingStretch: true,
+    searching: true,
+    searchingLive: true,
+    searchingLiveDelay: 500
+  }|merge(datatableOptions)
+%}
+{% set datatableId = 'datatable-' ~ datatableOptions.id %}
 
-{% set datatableId = datatableId is defined ? datatableId : 'datatable-0' %}
-
-<div class="datatable" data-controller="datatable" data-datatable-options-value="{{ datatableOptions|default({ paging: true })|json_encode }}">
+<div class="datatable" data-controller="global--datatable" data-global--datatable-options-value="{{ datatableOptions|json_encode }}">
   <div class="datatable-space-between">
     <div class="datatable-search">
-      {% if datatableOptions.searching ?? true %}
+      {% if datatableOptions.searching %}
         <div class="fr-search-bar" role="search">
           <label class="fr-label" for="datatable-search">Recherche</label>
-          <input class="fr-input" data-datatable-target="searchInput" placeholder="Recherche" type="search" name="datatable-search" />
-          <button class="fr-btn" data-datatable-target="searchButton" title="Rechercher">Rechercher</button>
+          <input class="fr-input" data-global--datatable-target="searchInput" placeholder="Recherche" type="search" name="datatable-search" />
+          <button class="fr-btn" data-global--datatable-target="searchButton" title="Rechercher">Rechercher</button>
         </div>
       {% endif %}
     </div>
     <div>
-      {% if datatableOptions.exporting ?? true %}
-        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-datatable-target="exportPdfButton" title="Export en PDF">PDF</button>
-        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-datatable-target="exportCsvButton" title="Export en CSV">CSV</button>
+      {% if datatableOptions.exporting %}
+        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-global--datatable-target="exportPdfButton" title="Export en PDF">
+          PDF
+        </button>
+        <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-left fr-icon-file-download-fill" data-global--datatable-target="exportCsvButton" title="Export en CSV">
+          CSV
+        </button>
       {% endif %}
     </div>
   </div>
@@ -32,34 +49,35 @@
               <thead>
                 <tr>
                   {# En-tête de la colonne de sélection #}
-                  {% if datatableOptions.selecting ?? false %}
+                  {% if datatableOptions.selecting %}
                     {% set selectAllId = datatableId ~ '-select-all' %}
-
-                    <th class="fr-cell--fixed" role="columnheader" data-datatable-column="0" data-datatable-target="visible">
+                    <th class="fr-cell--fixed" role="columnheader" data-global--datatable-column="0" data-global--datatable-target="visible">
                       <div class="fr-checkbox-group fr-checkbox-group--sm">
-                        <input id="{{ selectAllId }}" type="checkbox" data-datatable-target="selectAllCheckbox" />
+                        <input id="{{ selectAllId }}" type="checkbox" data-global--datatable-target="selectAllCheckbox" />
                         <label class="fr-label" for="{{ selectAllId }}">Tous</label>
                       </div>
                     </th>
                   {% endif %}
 
                   {% for column in datatableColumns %}
-                    {% set target = (column.visible ?? true ? 'visible') ~ (column.exportable ?? true ? ' exportable') ~ (column.searchable ?? false ? ' searchable')
-                      ~ (column.sortable ?? false ? ' sortable')
-                      ~ (column.filtrable ?? false ? ' filtrable')
+                    {% set targets = {
+                      visible: column.visible ?? true,
+                      exportable: column.exportable ?? true,
+                      searchable: column.searchable ?? false,
+                      sortable: column.sortable ?? false,
+                      filtrable: column.filtrable ?? false
+                    } %}
+                    {% set targets = targets|filter(v => v == true)|keys|join(' ') %}
+                    {# En-tête des colonnes définies avec les targets adaptées + attributs html pour l'index de la column et le tri initial selon sortInit #}
+                    {% set thAttributes =
+                      {
+                        'data-global--datatable-column': datatableOptions.selecting ? loop.index : loop.index0,
+                        'data-global--datatable-target': targets,
+                        'data-global--datatable-sort-init': column.sortInit is defined and column.sortInit in ['asc', 'desc'] ? column.sortInit : null,
+                        class: column.class is defined ? column.class : null
+                      }|filter(v => v is not null)
                     %}
-                    {# En-tête des colonnes définies avec les targets adaptées + attribut html pour l'index de la column et le tri initial selon sortInit #}
-                    {% set data_param %}
-                      scope="col" data-datatable-column="{{ datatableOptions.selecting ?? false ? loop.index : loop.index0 }}" data-datatable-target="{{ target }}"{% if
-                        column.sortInit is defined and column.sortInit in ['asc', 'desc'] %}
-                        data-datatable-sort-init="{{ column.sortInit }}"
-                      {% endif %}
-                      {% if column.class is defined %}
-                        class="{{ column.class }}"
-                      {% endif %}
-                    {% endset %}
-
-                    <th {{ data_param }}>
+                    <th scope="col" {{ html_attributes(thAttributes) }}>
                       <div class="fr-cell--sort">
                         {# Libellé de la colonne avec tooltip ou non #}
                         {% if column.tooltip is defined %}
@@ -71,11 +89,11 @@
                         {% endif %}
 
                         {# Bouton + menu pour une colonne filtrable #}
-                        {% if column.filtrable ?? false %}
+                        {% if column.filtrable is defined and column.filtrable %}
                           {% set filterId = datatableId ~ '-filter-' ~ loop.index0 %}
                           <div class="datatable-filter">
                             {# Bouton pour afficher/cacher le menu contenant les filtres #}
-                            <button type="button" id="{{ filterId }}" data-datatable-button="filter" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
+                            <button type="button" id="{{ filterId }}" data-global--datatable-button="filter" aria-haspopup="true" aria-expanded="false" class="fr-btn fr-btn--sm">
                               Filtrer par
                               {{ column.label|lower }}
                             </button>
@@ -87,23 +105,35 @@
                               {% set filterInit = [column.filterChoices|first] %}
                             {% endif %}
 
-                            <fieldset class="fr-fieldset fr-card--shadow fr-hidden" aria-labelledby="{{ filterId }}" data-datatable-filter-mode="{{ filterMode }}" role="menu">
+                            <fieldset
+                              class="fr-fieldset fr-card--shadow fr-hidden"
+                              aria-labelledby="{{ filterId }}"
+                              data-global--datatable-filter-mode="{{ filterMode }}"
+                              role="menu"
+                            >
                               <a href="#" class="fr-link fr-link--sm">Tout décocher</a>
 
                               {# Génère les différentes options du filtres selon filterChoices, en radio ou checkbox selon filterType, et présélectionne certaines selon filterInit #}
                               {% for filterChoice in column.filterChoices %}
                                 {% set filterChoiceId = filterId ~ '-choice-' ~ loop.index0 %}
-                                {% set is_checked = filterInit is empty or filterChoice.label in filterInit %}
-                                {% set input_param %}
-                                  {% if filterMode == 'range' %}
-                                    data-global--datatable-value-min="{{ filterChoice.valueMin }}" data-global--datatable-value-max="{{ filterChoice.valueMax }}"
-                                  {% else %}
-                                    data-global--datatable-value="{{ filterChoice.value }}"
-                                  {% endif %}
-                                {% endset %}
+                                {% set isChecked = filterInit is empty or filterChoice.label in filterInit %}
+                                {% set inputAttributes =
+                                  {
+                                    'data-global--datatable-value': filterMode == 'normal' ? filterChoice.value : null,
+                                    'data-global--datatable-value-min': filterMode == 'range' ? filterChoice.valueMin : null,
+                                    'data-global--datatable-value-max': filterMode == 'range' ? filterChoice.valueMax : null,
+                                    checked: isChecked ? 'checked' : null
+                                  }|filter(v => v is not null)
+                                %}
                                 <div class="fr-fieldset__element">
                                   <div class="fr-{{ filterType }}-group fr-{{ filterType }}-group--sm">
-                                    <input name="{{ filterId }}" id="{{ filterChoiceId }}" type="{{ filterType }}" {{ is_checked ? 'checked' }} {{ input_param }} />
+                                    <input
+                                      name="{{ filterId }}"
+                                      id="{{ filterChoiceId }}"
+                                      type="{{ filterType }}"
+                                      {{ isChecked ? 'checked' }}
+                                      {{ html_attributes(inputAttributes) }}
+                                    />
                                     <label class="fr-label" for="{{ filterChoiceId }}">{{ filterChoice.label }}</label>
                                   </div>
                                 </div>
@@ -113,9 +143,9 @@
                         {% endif %}
 
                         {# Bouton + menu pour une colonne triable #}
-                        {% if column.sortable ?? false %}
+                        {% if column.sortable is defined and column.sortable %}
                           {% set sortId = datatableId ~ '-sort-' ~ loop.index0 %}
-                          <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" data-datatable-button="sort" id="{{ sortId }}">
+                          <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" data-global--datatable-button="sort" id="{{ sortId }}">
                             Trier par
                             {{ column.label|lower }}
                           </button>
@@ -127,10 +157,10 @@
               </thead>
               <tbody>
                 {# Une nouvelle ligne pour chaque objet #}
-                {% for object in objects %}
-                  <tr data-row-key="{{ loop.index }}" style="--row-height: 50px;">
+                {% for object in datatableObjects %}
+                  <tr data-row-key="{{ loop.index }}">
                     {# Première colonne de sélection #}
-                    {% if datatableOptions.selecting ?? false %}
+                    {% if datatableOptions.selecting %}
                       {% set selectId = datatableId ~ '-select-' ~ loop.index %}
                       <th class="fr-cell--fixed" scope="row">
                         <div class="fr-checkbox-group fr-checkbox-group--sm">
@@ -138,8 +168,8 @@
                             data-fr-row-select="true"
                             id="{{ selectId }}"
                             type="checkbox"
-                            data-datatable-target="selectCheckbox"
-                            data-datatable-row-id="{{ attribute_deep(object, datatableOptions.selectingProperty|default('id'))|trim }}"
+                            data-global--datatable-target="selectCheckbox"
+                            data-global--datatable-row-id="{{ deep_attribute(object, datatableOptions.selectingProperty) }}"
                           />
                           <label class="fr-label" for="{{ selectId }}">{{ loop.index }}</label>
                         </div>
@@ -147,32 +177,25 @@
                     {% endif %}
                     {# Autres colonnes de valeurs définies #}
                     {% for column in datatableColumns %}
-                      {# HTML data param #}
-                      {% set data_param %}
-                        {% set sortable = column.sortable ?? false %}
-                        {% if sortable and column.sortProperty is defined %}
-                          data-order="{{ attribute_deep(object, column.sortProperty)|trim }}"
-                        {% endif %}
-
-                        {% set filtrable = column.filtrable ?? false %}
-                        {% if filtrable %}
-                          data-filter="{{ attribute_deep(object, column.filterProperty|default(column.property))|trim }}"
-                        {% endif %}
-
-                        {% set exportable = column.exportable ?? true %}
-                        {% if exportable and column.exportProperty is defined %}
-                          data-export="{{ attribute_deep(object, column.exportProperty)|trim }}"
-                        {% endif %}
-                      {% endset %}
+                      {# Attributs html #}
+                      {% set tdAttributes =
+                        {
+                          'data-order': column.sortable is defined and column.sortable and column.sortProperty is defined ? deep_attribute(object, column.sortProperty) : null,
+                          'data-filter': column.filtrable is defined and column.filtrable ? deep_attribute(object, column.filterProperty|default(column.property)) : null,
+                          'data-export': column.exportable is defined and column.exportable and column.exportProperty is defined
+                            ? deep_attribute(object, column.exportProperty)
+                            : null
+                        }|filter(v => v is not null)
+                      %}
 
                       {# Valeur affichée #}
-                      <td {{ data_param }}>
-                        {% if column.custom|default(false) %}
-                          {% with { path: customFilePath, block: column.property, object: object, param: customParam|default({}) } only %}
+                      <td {{ html_attributes(tdAttributes) }}>
+                        {% if not column.custom|default(false) %}
+                          {{ deep_attribute(object, column.property) }}
+                        {% else %}
+                          {% with { path: datatableCustom.filePath, block: column.property, object: object, param: datatableCustom.param|default({}) } only %}
                           {{ block(block, path) }}
                           {% endwith %}
-                        {% else %}
-                          {{ attribute_deep(object, column.property)|trim }}
                         {% endif %}
                       </td>
                     {% endfor %}
@@ -188,23 +211,23 @@
 
   <div class="datatable-space-between datatable-flex-start">
     <div class="fr-mx-3v fr-text--sm">
-      <span data-datatable-target="infoRecords">y à z lignes affichées sur t</span>
-      {% if datatableOptions.selecting ?? false %}
-        <br /><span data-datatable-target="infoSelects">x lignes sélectionnées</span>
+      <span data-global--datatable-target="infoRecords">y à z lignes affichées sur t</span>
+      {% if datatableOptions.selecting %}
+        <br /><span data-global--datatable-target="infoSelects">x lignes sélectionnées</span>
       {% endif %}
     </div>
-    {% if datatableOptions.paging ?? true %}
+    {% if datatableOptions.paging %}
       <nav role="navigation" class="fr-pagination" aria-label="Pagination">
         <ul class="fr-pagination__list">
-          <li><a class="fr-pagination__link fr-pagination__link--first" role="link" data-datatable-target="pageFirst">Première page</a></li>
-          <li><a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label" role="link" data-datatable-target="pagePrev">Page précédente</a></li>
-          <li><span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisBefore">…</span></li>
-          <li><a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageBefore">n-1</a></li>
-          <li><a class="fr-pagination__link" data-datatable-target="pageCurrent" aria-current="page">n</a></li>
-          <li><a class="fr-pagination__link fr-displayed-lg" href="#" data-datatable-target="pageAfter">n+1</a></li>
-          <li><span class="fr-pagination__link fr-displayed-lg" data-datatable-target="pageEllipsisAfter">…</span></li>
-          <li><a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--lg-label" data-datatable-target="pageNext">Page suivante</a></li>
-          <li><a class="fr-pagination__link fr-pagination__link--last" data-datatable-target="pageLast">Dernière page</a></li>
+          <li><a class="fr-pagination__link fr-pagination__link--first" role="link" data-global--datatable-target="pageFirst">Première page</a></li>
+          <li><a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label" role="link" data-global--datatable-target="pagePrev">Page précédente</a></li>
+          <li><span class="fr-pagination__link fr-displayed-lg" data-global--datatable-target="pageEllipsisBefore">…</span></li>
+          <li><a class="fr-pagination__link fr-displayed-lg" href="#" data-global--datatable-target="pageBefore">n-1</a></li>
+          <li><a class="fr-pagination__link" data-global--datatable-target="pageCurrent" aria-current="page">n</a></li>
+          <li><a class="fr-pagination__link fr-displayed-lg" href="#" data-global--datatable-target="pageAfter">n+1</a></li>
+          <li><span class="fr-pagination__link fr-displayed-lg" data-global--datatable-target="pageEllipsisAfter">…</span></li>
+          <li><a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--lg-label" data-global--datatable-target="pageNext">Page suivante</a></li>
+          <li><a class="fr-pagination__link fr-pagination__link--last" data-global--datatable-target="pageLast">Dernière page</a></li>
         </ul>
       </nav>
     {% endif %}

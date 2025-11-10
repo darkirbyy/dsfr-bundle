@@ -43,6 +43,7 @@ export default class DatatableController extends Controller {
     this.paging = this.optionsValue['paging'] ?? true;
     this.pagingLength = this.optionsValue['pagingLength'] ?? 50;
     this.selecting = this.optionsValue['selecting'] ?? false;
+    this.selectingProperty = this.optionsValue['selectingProperty'] ?? 'id';
     this.exporting = this.optionsValue['exporting'] ?? true;
     this.exportingName = this.optionsValue['exportingName'] ?? 'Export';
     this.exportingLandscape = this.optionsValue['exportingLandscape'] ?? false;
@@ -253,11 +254,11 @@ export default class DatatableController extends Controller {
     this.filterValues = Array();
     this.filtrableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
-      const button = element.querySelector('[data-datatable-button="filter"]');
+      const button = element.querySelector('[data-global--datatable-button="filter"]');
       const fieldset = element.querySelector('fieldset');
       const link = element.querySelector('a');
       const checkboxes = fieldset.querySelectorAll('input[type]');
-      const mode = fieldset.getAttribute('data-datatable-filter-mode');
+      const mode = fieldset.getAttribute('data-global--datatable-filter-mode');
 
       // Affiche ou ferme le menu de filtrage quand on clique sur le bouton
       button.addEventListener('click', () => {
@@ -313,13 +314,13 @@ export default class DatatableController extends Controller {
     if (mode == 'range') {
       this.filterValues[columnIndex] = checkedCheckboxes.map((checkbox) => {
         return {
-          min: parseFloat(checkbox.getAttribute('data-datatable-value-min')),
-          max: parseFloat(checkbox.getAttribute('data-datatable-value-max')),
+          min: parseFloat(checkbox.getAttribute('data-global--datatable-value-min')),
+          max: parseFloat(checkbox.getAttribute('data-global--datatable-value-max')),
         };
       });
     } else {
       this.filterValues[columnIndex] = checkedCheckboxes.map((checkbox) =>
-        checkbox.getAttribute('data-datatable-value')
+        checkbox.getAttribute('data-global--datatable-value')
       );
     }
     link.textContent = this.filterValues[columnIndex].length == 0 ? 'Tout cocher' : 'Tout décocher';
@@ -332,8 +333,8 @@ export default class DatatableController extends Controller {
 
     this.sortableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
-      const button = element.querySelector('[data-datatable-button="sort"]');
-      const initDirection = element.getAttribute('data-datatable-sort-init');
+      const button = element.querySelector('[data-global--datatable-button="sort"]');
+      const initDirection = element.getAttribute('data-global--datatable-sort-init');
 
       // Initialisation du tri s'il est définit
       if (initDirection) {
@@ -363,7 +364,7 @@ export default class DatatableController extends Controller {
 
     // Mettre à jour les attributs Aria
     this.sortableTargets.forEach((element) => {
-      element.querySelector('[data-datatable-button="sort"]').removeAttribute('aria-sort');
+      element.querySelector('[data-global--datatable-button="sort"]').removeAttribute('aria-sort');
     });
     button.setAttribute('aria-sort', newDirection + 'ending');
   }
@@ -395,6 +396,7 @@ export default class DatatableController extends Controller {
       const selectCheckboxChecked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
       this.selectCheckboxTargets.forEach((checkbox) => {
         checkbox.checked = selectCheckboxChecked == 0 ? true : false;
+        checkbox.dispatchEvent(new Event('change'));
         this.updateSelect(checkbox);
       });
       this.updateAllSelect();
@@ -403,7 +405,7 @@ export default class DatatableController extends Controller {
   }
 
   updateSelect(checkbox) {
-    const rowId = checkbox.getAttribute('data-datatable-row-id');
+    const rowId = checkbox.getAttribute('data-global--datatable-row-id');
     if (checkbox.checked) {
       if (!this.selectedRowId.includes(rowId)) {
         this.selectedRowId.push(rowId);
@@ -587,7 +589,7 @@ export default class DatatableController extends Controller {
   }
 
   getColumnIndex(element) {
-    return parseInt(element.getAttribute('data-datatable-column'), 10);
+    return parseInt(element.getAttribute('data-global--datatable-column'), 10);
   }
 
   getExportHeader(node) {
