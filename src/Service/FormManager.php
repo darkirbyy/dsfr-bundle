@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace Darkirby\DsfrBundle\Service;
 
-use App\Exception\DatabaseException;
+use Darkirby\DsfrBundle\Exception\DatabaseException;
 use Doctrine\DBAL\Exception\ConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMInvalidArgumentException;

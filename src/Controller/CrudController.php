@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller\Param;
+namespace Darkirby\DsfrBundle\Controller\Param;
 
-use App\Service\FormManager;
+use Darkirby\DsfrBundle\Service\FormManager;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
