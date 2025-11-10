@@ -14,7 +14,7 @@
   flex: 1;
 
   --idle: transparent;
-  --hover: var(--background-contrast-grey-hover);
+  --hover: var(--background-contrast-grey-active);
   --active: var(--background-contrast-grey-active);
 
   color: var(--text-default-grey);
@@ -81,7 +81,7 @@
 }
 
 .tomselect .ts-dropdown .option:hover {
-  background-color: var(--background-contrast-grey);
+  background-color: var(--background-contrast-grey-active);
 }
 
 .tomselect .ts-dropdown .optgroup-header {

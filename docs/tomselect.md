@@ -27,7 +27,7 @@ Pour intégrer le css et le controller stimulus au projet, ajouter les imports s
     import TomselectController from '../vendor/darkirby/dsfr-bundle/assets/controllers/tomselect-controller.js';
 
     [...]
-    app.register('tomselect', TomselectController);
+    app.register('global--tomselect', TomselectController);
     ```
 
 ## Utilisation
@@ -35,14 +35,14 @@ Pour intégrer le css et le controller stimulus au projet, ajouter les imports s
 Dans un FormType, ajouter les attributs suivants dans le `attr` des options d'un champ :
 
 ```php
-'data-controller' => 'tomselect',
-'data-tomselect-options-value' => json_encode([
+'data-controller' => 'global--tomselect',
+'data-global--tomselect-options-value' => json_encode([
     'create' => true,
     ...
 ]),
 ```
 
-L'attribut `data-tomselect-options-value` peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
+L'attribut `data-global--tomselect-options-value` peut-être omis pour utiliser toutes les options par défaut. Sinon, il peut contenir les clés suivantes :
 
 - **backspace**: *bool* (optionnel, défaut true) Si vrai, l'utilisateur peut supprimer des options avec la touche "Retour arrière", sinon un bouton pour vider le champ s'affiche toute à droite
 - **number**: *int|null* (optionnel, défaut null) Nombres d'options à afficher dans le menu déroulant, null = toutes
@@ -63,8 +63,8 @@ Exemple sans chargement dynamique : les 5 meilleures options s'affichent (même 
         'label' => 'Choisir une personne',    
         'placeholder' => 'Taper les premières lettres du nom/prénom',
         'attr' => [
-            'data-controller' => 'tomselect',
-            'data-tomselect-options-value' => json_encode([
+            'data-controller' => 'global--tomselect',
+            'data-global--tomselect-options-value' => json_encode([
                 'number' => 5,
                 'multiple' => true,
                 'create' => false,
@@ -82,8 +82,8 @@ Exemple avec chargement dynamique : les options sont renvoyées par le serveur p
         'label' => 'Choisir une personne',
         'placeholder' => 'Taper les premières lettres du nom/prénom',    
         'attr' => [
-            'data-controller' => 'tomselect',
-            'data-tomselect-options-value' => json_encode([
+            'data-controller' => 'global--tomselect',
+            'data-global--tomselect-options-value' => json_encode([
                 'url' => $this->urlGenerator->generate('personne_search'),
                 'delay' => 200,
             ]),
