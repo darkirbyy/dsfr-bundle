@@ -5,7 +5,7 @@
 Il faut avoir ajouté les dépendances suivantes à l'import-map via :
 
 ```sh
-symfony console importmap:require datatables.net-dt datatables.net-buttons datatables.net-buttons/js/buttons.html5 pdfmake
+symfony console importmap:require datatables.net-dt datatables.net-buttons datatables.net-staterestore datatables.net-buttons/js/buttons.html5 pdfmake
 ```
 
 ## Installation
@@ -55,6 +55,7 @@ Le fichier qui inclut datatable peut définir les variables suivantes :
   - **exportingName**: *string* (optionnel, défaut 'Export') Nom des fichiers exportés
   - **exportingLandscape**: *bool* (optionnel, défaut false) Exporter en format paysage si oui, sinon en format portrait
   - **exportingStretch**: *bool* (optionnel, défaut true) Étendre la taille des colonnes pour remplir toute la largeur de la page
+  - **storing**: *bool* (optionnel, défaut false) Stocke l'état du tableau pendant la navigation
 
 Il y a deux méthodes pour générer le `thead` et le `tbody` du tableau : en définissant les colonnes, ou en définissant le contenu à la main.
 
@@ -67,7 +68,6 @@ On rajoute les variables suivantes :
 - **datatableCustom** *array* (OBLIGATOIRE si custom = true pour une des colonnes, voir plus bas) définit les paramètres des colonnes custom. Il peut contenir les clés suivantes :
   - **filePath**: *string* (OBLIGATOIRE) chemin du ficher twig qui contient les blocks customs
   - **param**: *array* (optionnel) paramètres supplémentaire à envoyer aux blocs customs
-<!-- - **attributeMode** : *normal|deep* (optionnel, défaut normal) utiliser 'deep' pour accéder à des sous propriétés (par exemple 'ville.adresse.rue'), mais plus lent -->
 
 - **datatableColumns** est un *array d'array*, dont chaque élément définit une colonne du tableau. Chaque ligne peut contenir les clés suivantes :
   - **property**: *string* (OBLIGATOIRE) quelle propriété de l'objet doit être affichée. Peut être une sous propriété (exemple adresse.ville).

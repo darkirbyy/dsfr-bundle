@@ -10,14 +10,20 @@
     exportingStretch: true,
     searching: true,
     searchingLive: true,
-    searchingLiveDelay: 500
+    searchingLiveDelay: 500,
+    storing: false,
   }|merge(datatableOptions)
 %}
 {% set datatableId = 'datatable-' ~ datatableOptions.id %}
 
 <div class="datatable" data-controller="global--datatable" data-global--datatable-options-value="{{ datatableOptions|json_encode }}">
   <div class="datatable-space-between">
-    <div class="datatable-search">
+    <div class="datatable-search-reset">
+      {% if datatableOptions.storing %}
+        <div>
+          <button class="fr-btn fr-btn--secondary fr-icon-refresh-line" data-global--datatable-target="resetButton" title="Réinitialiser"></button>
+        </div>
+      {% endif %}
       {% if datatableOptions.searching %}
         <div class="fr-search-bar" role="search">
           <label class="fr-label" for="datatable-search">Recherche</label>
@@ -65,7 +71,7 @@
                       exportable: column.exportable ?? true,
                       searchable: column.searchable ?? false,
                       sortable: column.sortable ?? false,
-                      filtrable: column.filtrable ?? false
+                      filtrable: column.filtrable ?? false,
                     } %}
                     {% set targets = targets|filter(v => v == true)|keys|join(' ') %}
                     {# En-tête des colonnes définies avec les targets adaptées + attributs html pour l'index de la column et le tri initial selon sortInit #}
@@ -73,8 +79,8 @@
                       {
                         'data-global--datatable-column': datatableOptions.selecting ? loop.index : loop.index0,
                         'data-global--datatable-target': targets,
-                        'data-global--datatable-sort-init': column.sortInit is defined and column.sortInit in ['asc', 'desc'] ? column.sortInit : null,
-                        class: column.class is defined ? column.class : null
+                        'data-global--datatable-sort-init': (column.sortInit|default('')) in ['asc', 'desc'] ? column.sortInit : null,
+                        class: column.class|default(null),
                       }|filter(v => v is not null)
                     %}
                     <th scope="col" {{ html_attributes(thAttributes) }}>
@@ -89,7 +95,7 @@
                         {% endif %}
 
                         {# Bouton + menu pour une colonne filtrable #}
-                        {% if column.filtrable is defined and column.filtrable %}
+                        {% if column.filtrable|default(false) %}
                           {% set filterId = datatableId ~ '-filter-' ~ loop.index0 %}
                           <div class="datatable-filter">
                             {# Bouton pour afficher/cacher le menu contenant les filtres #}
@@ -98,9 +104,9 @@
                               {{ column.label|lower }}
                             </button>
                             {# Détermine le type de filtre et les valeurs initialement cochées #}
-                            {% set filterType = column.filterType is defined and column.filterType in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
-                            {% set filterMode = column.filterMode is defined and column.filterMode in ['range', 'normal'] ? column.filterMode : 'normal' %}
-                            {% set filterInit = column.filterInit is defined ? column.filterInit : [] %}
+                            {% set filterType = (column.filterType|default('')) in ['checkbox', 'radio'] ? column.filterType : 'checkbox' %}
+                            {% set filterMode = (column.filterMode|default('')) in ['range', 'normal'] ? column.filterMode : 'normal' %}
+                            {% set filterInit = column.filterInit|default([]) %}
                             {% if filterType == 'radio' and filterInit is empty %}
                               {% set filterInit = [column.filterChoices|first] %}
                             {% endif %}
@@ -122,7 +128,7 @@
                                     'data-global--datatable-value': filterMode == 'normal' ? filterChoice.value : null,
                                     'data-global--datatable-value-min': filterMode == 'range' ? filterChoice.valueMin : null,
                                     'data-global--datatable-value-max': filterMode == 'range' ? filterChoice.valueMax : null,
-                                    checked: isChecked ? 'checked' : null
+                                    checked: isChecked ? 'checked' : null,
                                   }|filter(v => v is not null)
                                 %}
                                 <div class="fr-fieldset__element">
@@ -143,7 +149,7 @@
                         {% endif %}
 
                         {# Bouton + menu pour une colonne triable #}
-                        {% if column.sortable is defined and column.sortable %}
+                        {% if column.sortable|default(false) %}
                           {% set sortId = datatableId ~ '-sort-' ~ loop.index0 %}
                           <button type="button" class="fr-btn--sort fr-btn fr-btn--sm" data-global--datatable-button="sort" id="{{ sortId }}">
                             Trier par
@@ -180,11 +186,9 @@
                       {# Attributs html #}
                       {% set tdAttributes =
                         {
-                          'data-order': column.sortable is defined and column.sortable and column.sortProperty is defined ? deep_attribute(object, column.sortProperty) : null,
-                          'data-filter': column.filtrable is defined and column.filtrable ? deep_attribute(object, column.filterProperty|default(column.property)) : null,
-                          'data-export': column.exportable is defined and column.exportable and column.exportProperty is defined
-                            ? deep_attribute(object, column.exportProperty)
-                            : null
+                          'data-order': (column.sortable|default(false)) and column.sortProperty is defined ? deep_attribute(object, column.sortProperty) : null,
+                          'data-filter': column.filtrable|default(false) ? deep_attribute(object, column.filterProperty|default(column.property)) : null,
+                          'data-export': (column.exportable|default(true)) and column.exportProperty is defined ? deep_attribute(object, column.exportProperty) : null,
                         }|filter(v => v is not null)
                       %}
 
@@ -193,7 +197,7 @@
                         {% if not column.custom|default(false) %}
                           {{ deep_attribute(object, column.property) }}
                         {% else %}
-                          {% with { path: datatableCustom.filePath, block: column.property, object: object, param: datatableCustom.param|default({}) } only %}
+                          {% with { path: datatableCustom.filePath, block: column.property, object: object, param: datatableCustom.param|default({ }) } only %}
                           {{ block(block, path) }}
                           {% endwith %}
                         {% endif %}

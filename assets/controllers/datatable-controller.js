@@ -2,14 +2,16 @@ import { Controller } from '@hotwired/stimulus';
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5';
+import 'datatables.net-staterestore';
 import 'pdfmake';
-import '../javascripts/vfs-marianne.js';
+import '../../javascripts/vfs-marianne.js';
 
 /*
  * Ce controller qui connecte les évènements datatable aux différents boutons dsfr (pagination, recherche, export)
  */
 export default class DatatableController extends Controller {
   static targets = [
+    'resetButton',
     'exportCsvButton',
     'exportPdfButton',
     'visible',
@@ -38,6 +40,10 @@ export default class DatatableController extends Controller {
     options: Object,
   };
 
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Initialisation ///////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
   connect() {
     // Récupération des options avec valeurs par défaut
     this.paging = this.optionsValue['paging'] ?? true;
@@ -51,7 +57,23 @@ export default class DatatableController extends Controller {
     this.searching = this.optionsValue['searching'] ?? true;
     this.searchingLive = this.optionsValue['searchingLive'] ?? true;
     this.searchingLiveDelay = this.optionsValue['searchingLiveDelay'] ?? 500;
+    this.storing = this.optionsValue['storing'] ?? false;
 
+    // On setup la datatable et on attrape les erreurs pour afficher un message, et on supprimer tous les states.
+    try {
+      this.setupDatatable();
+    } catch (error) {
+      if (this.dataTable) {
+        this.dataTable.stateRestore.states().remove(true);
+      }
+      console.error(error.toString());
+      alert(
+        'Une erreur est survenue lors du chargement du tableau. Merci de recharger la page ou de contacter une administrateur si le problème persiste.'
+      );
+    } 
+  }
+
+  setupDatatable() {
     // Définir les colonnes visibles
     let visibleColumns = Array();
     this.visibleTargets.forEach((element) => {
@@ -72,11 +94,14 @@ export default class DatatableController extends Controller {
       this.searchLabels.push(this.getExportHeader(element).toLowerCase());
     });
 
-    // Récupère toutes les case à cochées de sélection avant qu'elles soient enlevées du DOM
+    // Récupère toutes les cases à cocher de sélection avant qu'elles soient enlevées du DOM
     this.selectCheckboxes = this.selectCheckboxTargets;
 
     // Recupère la table elle-même
     this.tableElement = this.element.querySelector('table');
+
+    // Enregistre une référence du controller stimulus pour les callbacks
+    const controller = this;
 
     // Initialiser DataTable avec une configuration adaptée
     this.dataTable = new DataTable(this.tableElement, {
@@ -101,6 +126,14 @@ export default class DatatableController extends Controller {
         { visible: true, targets: visibleColumns },
         { visible: false, targets: '_all' },
       ],
+      stateSaveParams: function (s, data) {
+        data.filterValues = controller.filterValues;
+        data.selectedRowId = controller.selectedRowId;
+      },
+      stateLoadParams: function (s, data) {
+        controller.filterValues = data && data.filterValues ? data.filterValues : [];
+        controller.selectedRowId = data && data.selectedRowId ? data.selectedRowId : [];
+      },
       language: {
         emptyTable: 'Aucune donnée à afficher',
         zeroRecords: 'Aucun résultat',
@@ -137,59 +170,42 @@ export default class DatatableController extends Controller {
     // Récupération de l'api
     this.dataApi = new DataTable.Api(this.tableElement);
 
-    // Initialiser les boutons d'export
-    this.setupExportListeners();
-
     // Initialiser la recherche
-    this.setupSearchListeners();
-
-    // Initialiser le filtrage
-    this.setupFilterListeners();
+    this.searchSetup();
 
     // Initialiser le tri
-    this.setupSortListeners();
+    this.sortSetup();
 
-    // Initialiser la sélection
-    this.setupSelectListeners();
+    // Initialiser le filtrage
+    this.filterSetup();
 
     // Initialiser la pagination
-    this.setupPaginationListeners();
+    this.paginationSetup();
+
+    // Initialiser la sélection
+    this.selectSetup();
+
+    // Initialiser la sauvegarde
+    this.storeSetup();
+
+    // Initialiser les boutons d'export
+    this.exportSetup();
 
     // Calcul initial du tableau
-    this.performRedraw();
+    this.redrawInit();
   }
 
   disconnect() {
-    if (this.dataTable) {
-      this.dataTable.destroy();
+    if (this.dataTable && this.element.isConnected === false) {
+      this.dataTable.destroy(false);
     }
   }
 
-  setupExportListeners() {
-    if (!this.exporting) {
-      return;
-    }
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Recherche ////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-    /*global pdfMake*/
-    pdfMake.fonts = {
-      Marianne: {
-        normal: 'Marianne-Regular.ttf',
-        bold: 'Marianne-Bold.ttf',
-        italics: 'Marianne-RegularItalic.ttf',
-        bolditalics: 'Marianne-BoldItalic.ttf',
-      },
-    };
-
-    this.exportCsvButtonTarget.addEventListener('click', () => {
-      this.dataTable.buttons('csv:name').trigger();
-    });
-
-    this.exportPdfButtonTarget.addEventListener('click', () => {
-      this.dataTable.buttons('pdf:name').trigger();
-    });
-  }
-
-  setupSearchListeners() {
+  searchSetup() {
     if (!this.searching) {
       return;
     }
@@ -198,21 +214,21 @@ export default class DatatableController extends Controller {
     this.searchInputTarget.setAttribute('placeholder', 'Recherche sur ' + this.searchLabels.join(' - '));
 
     // Initialisation de la recherche
-    this.updateSearch();
+    this.searchUpdate();
 
     // Écouter le clic sur le bouton de recherche
     this.searchButtonTarget.addEventListener('click', (event) => {
       event.preventDefault();
-      this.updateSearch();
-      this.performRedraw();
+      this.searchUpdate();
+      this.redrawNormal();
     });
 
     // Écouter la touche Entrée dans le champ de recherche
     this.searchInputTarget.addEventListener('keyup', (event) => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        this.updateSearch();
-        this.performRedraw();
+        this.searchUpdate();
+        this.redrawNormal();
       }
     });
 
@@ -221,19 +237,89 @@ export default class DatatableController extends Controller {
       this.searchInputTarget.addEventListener('input', () => {
         clearTimeout(this._searchTimeout);
         this._searchTimeout = setTimeout(() => {
-          this.updateSearch();
-          this.performRedraw();
+          this.searchUpdate();
+          this.redrawNormal();
         }, this.searchingLiveDelay);
       });
     }
   }
 
-  updateSearch() {
+  searchUpdate() {
     // Appliquer la recherche
     this.dataApi.search(this.searchInputTarget.value ?? null);
   }
 
-  setupFilterListeners() {
+  searchRedraw() {
+    // Insère la recherche dans le champ
+    this.searchInputTarget.value = this.dataTable.search() ?? '';
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Tri //////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  sortSetup() {
+    if (this.sortableTargets.length == 0) {
+      return;
+    }
+
+    this.sortableTargets.forEach((element) => {
+      const columnIndex = this.getColumnIndex(element);
+      const button = element.querySelector('[data-global--datatable-button="sort"]');
+      const initDirection = element.getAttribute('data-global--datatable-sort-init');
+
+      // Initialisation du tri s'il est définit
+      if (initDirection) {
+        this.sortUpdate(button, columnIndex, initDirection);
+      }
+
+      // Ajout des écouteurs pour les boutons de tri
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.sortUpdate(button, columnIndex);
+        this.redrawNormal();
+      });
+    });
+  }
+
+  sortUpdate(button, columnIndex, newDirection = 'asc') {
+    // Récupérer la colonne et direction actuelle du tri
+    const currentOrder = this.dataTable.order()[0];
+
+    // Si la colonne est déjà triée, basculer la direction
+    if (currentOrder != undefined && currentOrder[0] === columnIndex) {
+      newDirection = currentOrder[1] === 'asc' ? 'desc' : 'asc';
+    }
+
+    // Appliquer le tri
+    this.dataTable.order([columnIndex, newDirection]);
+
+    // Mettre à jour les attributs Aria
+    this.sortableTargets.forEach((element) => {
+      element.querySelector('[data-global--datatable-button="sort"]').removeAttribute('aria-sort');
+    });
+    button.setAttribute('aria-sort', newDirection + 'ending');
+  }
+
+  sortRedraw() {
+    // Mettre à jour les attributs Aria
+    this.sortableTargets.forEach((element) => {
+      const columnIndex = this.getColumnIndex(element);
+      const button = element.querySelector('[data-global--datatable-button="sort"]');
+      const currentOrder = this.dataTable.order()[0];
+
+      button.removeAttribute('aria-sort');
+      if (currentOrder != undefined && currentOrder[0] === columnIndex) {
+        button.setAttribute('aria-sort', currentOrder[1] + 'ending');
+      }
+    });
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Filtrage /////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  filterSetup() {
     if (this.filtrableTargets.length == 0) {
       return;
     }
@@ -251,6 +337,7 @@ export default class DatatableController extends Controller {
       });
     });
 
+    // Pour chaque menu de filtrage définit
     this.filterValues = Array();
     this.filtrableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
@@ -270,7 +357,7 @@ export default class DatatableController extends Controller {
       });
 
       // Initialisation du tableau de valeur autorisées pour le filtre
-      this.updateFilter(checkboxes, columnIndex, link, mode);
+      this.filterUpdate(checkboxes, columnIndex, link, mode);
 
       // Ajouter une recherche fixe, par layer. Ne pas utiliser cell qui est vide car la recherche globale sur ce champ est désactivé !
       this.dataApi.column(columnIndex).search.fixed('filter' + columnIndex.toString(), (cell, data) => {
@@ -293,8 +380,8 @@ export default class DatatableController extends Controller {
       // Ajout des écouteurs pour les cases à cocher
       checkboxes.forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
-          this.updateFilter(checkboxes, columnIndex, link, mode);
-          this.performRedraw();
+          this.filterUpdate(checkboxes, columnIndex, link, mode);
+          this.redrawNormal();
         });
       });
 
@@ -302,13 +389,13 @@ export default class DatatableController extends Controller {
       link.addEventListener('click', (event) => {
         event.preventDefault();
         checkboxes.forEach((checkbox) => (checkbox.checked = this.filterValues[columnIndex].length == 0));
-        this.updateFilter(checkboxes, columnIndex, link, mode);
-        this.performRedraw();
+        this.filterUpdate(checkboxes, columnIndex, link, mode);
+        this.redrawNormal();
       });
     });
   }
 
-  updateFilter(checkboxes, columnIndex, link, mode) {
+  filterUpdate(checkboxes, columnIndex, link, mode) {
     // Mettre à jour les valeurs autorisées pour le filtre, selon le mode
     const checkedCheckboxes = Array.from(checkboxes).filter((checkbox) => checkbox.checked);
     if (mode == 'range') {
@@ -323,144 +410,92 @@ export default class DatatableController extends Controller {
         checkbox.getAttribute('data-global--datatable-value')
       );
     }
+
+    // Mettre à jour le bouton tout (dé)cocher
     link.textContent = this.filterValues[columnIndex].length == 0 ? 'Tout cocher' : 'Tout décocher';
   }
 
-  setupSortListeners() {
-    if (this.sortableTargets.length == 0) {
-      return;
-    }
-
-    this.sortableTargets.forEach((element) => {
+  filterRedraw() {
+    this.filtrableTargets.forEach((element) => {
       const columnIndex = this.getColumnIndex(element);
-      const button = element.querySelector('[data-global--datatable-button="sort"]');
-      const initDirection = element.getAttribute('data-global--datatable-sort-init');
+      const fieldset = element.querySelector('fieldset');
+      const link = element.querySelector('a');
+      const checkboxes = fieldset.querySelectorAll('input[type]');
+      const mode = fieldset.getAttribute('data-global--datatable-filter-mode');
 
-      // Initialisation du tri s'il est définit
-      if (initDirection) {
-        this.performSort(button, columnIndex, initDirection);
-      }
-
-      // Ajout des écouteurs pour les boutons de tri
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.performSort(button, columnIndex);
-        this.performRedraw();
+      Array.from(checkboxes).forEach((checkbox) => {
+        if (mode == 'range') {
+          const valueMin = parseFloat(checkbox.getAttribute('data-global--datatable-value-min'));
+          const valueMax = parseFloat(checkbox.getAttribute('data-global--datatable-value-max'));
+          checkbox.checked = this.filterValues[columnIndex].some((range) => {
+            return range.min == valueMin && range.max == valueMax;
+          });
+        } else {
+          const value = checkbox.getAttribute('data-global--datatable-value');
+          checkbox.checked = this.filterValues[columnIndex].includes(value);
+        }
       });
+
+      link.textContent = this.filterValues[columnIndex].length == 0 ? 'Tout cocher' : 'Tout décocher';
     });
   }
 
-  performSort(button, columnIndex, newDirection = 'asc') {
-    // Récupérer la colonne et direction actuelle du tri
-    const currentOrder = this.dataTable.order();
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Pagination ///////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-    // Si la colonne est déjà triée, basculer la direction
-    if (currentOrder.length && currentOrder[0] === columnIndex) {
-      newDirection = currentOrder[1] === 'asc' ? 'desc' : 'asc';
-    }
-
-    // Appliquer le tri
-    this.dataTable.order([columnIndex, newDirection]).draw();
-
-    // Mettre à jour les attributs Aria
-    this.sortableTargets.forEach((element) => {
-      element.querySelector('[data-global--datatable-button="sort"]').removeAttribute('aria-sort');
-    });
-    button.setAttribute('aria-sort', newDirection + 'ending');
-  }
-
-  setupSelectListeners() {
-    if (!this.selecting) {
-      return;
-    }
-
-    // Tableau qui stocke l'id des lignes sélectionnées
-    this.selectedRowId = Array();
-    this.selectEvent = new CustomEvent(this.tableElement.id + '-select', {
-      detail: { selectedRowId: this.selectedRowId },
-    });
-
-    // On initialise avec les cases cochées au chargement + ajout des écouteurs quand on coche/décoche
-    this.selectCheckboxes.forEach((element) => {
-      this.updateSelect(element);
-      element.addEventListener('change', (event) => {
-        this.updateSelect(event.target);
-        this.updateAllSelect();
-        this.updateInfoSelects();
-      });
-    });
-
-    // On initialise la case à cocher toutes les lignes visibles + ajout écouter quand on coche/décooche
-    this.updateAllSelect();
-    this.selectAllCheckboxTarget.addEventListener('change', () => {
-      const selectCheckboxChecked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
-      this.selectCheckboxTargets.forEach((checkbox) => {
-        checkbox.checked = selectCheckboxChecked == 0 ? true : false;
-        checkbox.dispatchEvent(new Event('change'));
-        this.updateSelect(checkbox);
-      });
-      this.updateAllSelect();
-      this.updateInfoSelects();
-    });
-  }
-
-  updateSelect(checkbox) {
-    const rowId = checkbox.getAttribute('data-global--datatable-row-id');
-    if (checkbox.checked) {
-      if (!this.selectedRowId.includes(rowId)) {
-        this.selectedRowId.push(rowId);
-      }
-    } else {
-      const index = this.selectedRowId.indexOf(rowId);
-      if (index > -1) {
-        this.selectedRowId.splice(index, 1);
-      }
-    }
-    checkbox.closest('tr').setAttribute('aria-selected', checkbox.checked);
-  }
-
-  updateAllSelect() {
-    if (!this.selecting) {
-      return;
-    }
-    this.selectAllCheckboxTarget.checked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
-    window.dispatchEvent(this.selectEvent);
-  }
-
-  setupPaginationListeners() {
+  paginationSetup() {
     if (!this.paging) {
       return;
     }
     //  Ajout des écouteurs pour les boutons de pagination
     const paginationElements = [
-      { element: this.pageFirstTarget, apiEvent: 'first' },
-      { element: this.pagePrevTarget, apiEvent: 'previous' },
-      { element: this.pageBeforeTarget, apiEvent: 'previous' },
-      { element: this.pageNextTarget, apiEvent: 'next' },
-      { element: this.pageAfterTarget, apiEvent: 'next' },
-      { element: this.pageLastTarget, apiEvent: 'last' },
+      { element: this.pageFirstTarget, targetPage: 'first' },
+      { element: this.pagePrevTarget, targetPage: 'previous' },
+      { element: this.pageBeforeTarget, targetPage: 'previous' },
+      { element: this.pageAfterTarget, targetPage: 'next' },
+      { element: this.pageNextTarget, targetPage: 'next' },
+      { element: this.pageLastTarget, targetPage: 'last' },
     ];
 
-    paginationElements.forEach(({ element, apiEvent }) => {
+    paginationElements.forEach(({ element, targetPage }) => {
       element.addEventListener('click', (event) => {
         event.preventDefault();
         // Si le bouton est activé uniquement, on change de page et on met à jour la pagination
         if (!event.currentTarget.hasAttribute('aria-disabled')) {
-          this.dataApi.page(apiEvent).draw('page');
-          this.updatePagination();
-          this.updateAllSelect();
-          this.updateInfoRecords();
+          this.paginationUpdate(targetPage);
+          this.redrawNormal('page');
         }
       });
     });
   }
 
-  updatePagination() {
+  paginationUpdate(targetPage) {
+    this.dataApi.page(targetPage);
+  }
+
+  paginationRedraw() {
+    // Même si la pagination est désactivé, on affiche le nombre de ligne totales
+    // et aussi le nombre de lignes affichées si la pagination est activée
+    const pageInfo = this.dataApi.page.info();
+
+    let textContent = 'Affichage : ';
+    if (this.paging) {
+      const start = pageInfo.start + 1;
+      const end = pageInfo.end;
+      textContent += start.toString() + ' à ' + end.toString() + ' sur ';
+    }
+
+    const records = pageInfo.recordsDisplay;
+    textContent += records.toString() + ' ligne' + (records > 1 ? 's' : '');
+
+    this.infoRecordsTarget.textContent = textContent;
+
+    // Le reste de la pagination est mis à jour uniquement si elle est activée
     if (!this.paging) {
       return;
     }
 
-    const pageInfo = this.dataApi.page.info();
     const totalPages = Math.max(1, pageInfo.pages);
     const currentPage = pageInfo.page + 1;
 
@@ -523,40 +558,207 @@ export default class DatatableController extends Controller {
     }
   }
 
-  updateInfoSelects() {
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Sélection ////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  selectSetup() {
+    if (!this.selecting) {
+      return;
+    }
+
+    // Tableau qui stocke l'id des lignes sélectionnées
+    this.selectedRowId = Array();
+
+    // On initialise avec les cases cochées au chargement + ajout des écouteurs quand on coche/décoche
+    this.selectCheckboxes.forEach((element) => {
+      element.addEventListener('change', (event) => {
+        this.selectUpdate(event.target);
+        if (event.explicitOriginalTarget == event.target) {
+          this.selectAllUpdate();
+          this.selectDispatch();
+          this.storeSaveTo('current');
+        }
+      });
+    });
+
+    // On initialise la case à cocher toutes les lignes visibles + ajout écouter quand on coche/décooche
+    this.selectAllCheckboxTarget.addEventListener('change', () => {
+      const numberCheckboxedChecked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
+      this.selectCheckboxTargets.forEach((checkbox) => {
+        checkbox.checked = numberCheckboxedChecked == 0;
+        checkbox.dispatchEvent(new Event('change'));
+      });
+      this.selectAllUpdate();
+      this.selectDispatch();
+      this.storeSaveTo('current');
+    });
+  }
+
+  selectUpdate(checkbox) {
+    // On récupère l'id de la ligne
+    const rowId = checkbox.getAttribute('data-global--datatable-row-id');
+
+    // On l'ajoute (s'il n'est pas déjà stocké) ou l'enlève (s'i lest stocké) de la liste
+    if (checkbox.checked) {
+      if (!this.selectedRowId.includes(rowId)) {
+        this.selectedRowId.push(rowId);
+      }
+    } else {
+      const index = this.selectedRowId.indexOf(rowId);
+      if (index > -1) {
+        this.selectedRowId.splice(index, 1);
+      }
+    }
+
+    // On met à jour l'attribut aria de la ligne
+    checkbox.closest('tr').setAttribute('aria-selected', checkbox.checked);
+  }
+
+  selectAllUpdate() {
+    if (!this.selecting) {
+      return;
+    }
+
+    // Coche la case 'Tout (dé)cocher' si au moins une case à cocher visible est cochée
+    this.selectAllCheckboxTarget.checked = this.selectCheckboxTargets.filter((checkbox) => checkbox.checked).length;
+
     // Récupère les lignes sélectionnés et affiche le nombre
-    if (this.selecting) {
-      const selects = this.selectedRowId.length;
-      this.infoSelectsTarget.textContent = 'Sélection : ' + selects.toString() + ' ligne' + (selects > 1 ? 's' : '');
+    const selects = this.selectedRowId.length;
+    this.infoSelectsTarget.textContent = 'Sélection : ' + selects.toString() + ' ligne' + (selects > 1 ? 's' : '');
+  }
+
+  selectRedraw() {
+    const validRowId = new Array();
+    this.selectCheckboxes.forEach((checkbox) => {
+      const rowId = checkbox.getAttribute('data-global--datatable-row-id');
+      validRowId.push(rowId);
+      checkbox.checked = this.selectedRowId.includes(rowId);
+      this.selectUpdate(checkbox);
+    });
+    this.selectedRowId = this.selectedRowId.filter((rowId) => validRowId.includes(rowId));
+
+    this.selectAllUpdate();
+    this.selectDispatch();
+  }
+
+  selectDispatch() {
+    window.dispatchEvent(
+      new CustomEvent(this.tableElement.id + '-select', {
+        detail: { selectedRowId: this.selectedRowId },
+      })
+    );
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Stockage /////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  storeSetup() {
+    if (!this.storing) {
+      return;
+    }
+
+    // Crée et enregistre l'état initial s'il n'existe pas
+    this.storeSaveTo('initial');
+
+    // Quand on clique sur le bouton de réinitialisation, on charge l'état initial
+    // s'il existe et on l'enregistre comme état courant
+    this.resetButtonTarget.addEventListener('click', () => {
+      this.storeLoadFrom('initial');
+      this.storeSaveTo('current');
+      this.redrawStore();
+    });
+  }
+
+  storeLoadFrom(stateName) {
+    const existingStates = this.dataTable.stateRestore.states().map((s) => s.s.identifier);
+    if (existingStates.includes(stateName)) {
+      this.dataTable.stateRestore.state(stateName).load();
+      return true;
+    } else {
+      return false;
     }
   }
 
-  updateInfoRecords() {
-    // Recupère le nombre de lignes affichées et sélectionnées (sans compter la pagination)
-    let textContent = 'Affichage : ';
-    const pageInfo = this.dataApi.page.info();
-
-    if (this.paging) {
-      const start = pageInfo.start + 1;
-      const end = pageInfo.end;
-      textContent += start.toString() + ' à ' + end.toString() + ' sur ';
+  storeSaveTo(stateName) {
+    if (!this.storing) {
+      return;
     }
 
-    const records = pageInfo.recordsDisplay;
-    textContent += records.toString() + ' ligne' + (records > 1 ? 's' : '');
-
-    this.infoRecordsTarget.textContent = textContent;
+    // On ajoute le nouvel état s'il n'existe pas, où on le met à jour sinon
+    const existingStates = this.dataTable.stateRestore.states().map((s) => s.s.identifier);
+    if (!existingStates.includes(stateName)) {
+      this.dataTable.stateRestore.state.add(stateName);
+    } else {
+      this.dataTable.stateRestore.state(stateName).save();
+    }
   }
 
-  performRedraw() {
-    // Recalculer les lignes selon les filtres/recherche/order + retour à la première page
-    this.dataApi.draw('full-reset');
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Export PDF/CSV ///////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-    // Mettre à jour la pagination et le nombre de lignes
-    this.updatePagination();
-    this.updateInfoSelects();
-    this.updateInfoRecords();
+  exportSetup() {
+    if (!this.exporting) {
+      return;
+    }
+
+    /*global pdfMake*/
+    pdfMake.fonts = {
+      Marianne: {
+        normal: 'Marianne-Regular.ttf',
+        bold: 'Marianne-Bold.ttf',
+        italics: 'Marianne-RegularItalic.ttf',
+        bolditalics: 'Marianne-BoldItalic.ttf',
+      },
+    };
+
+    this.exportCsvButtonTarget.addEventListener('click', () => {
+      this.dataTable.buttons('csv:name').trigger();
+    });
+
+    this.exportPdfButtonTarget.addEventListener('click', () => {
+      this.dataTable.buttons('pdf:name').trigger();
+    });
   }
+
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Redraw ///////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  redrawInit() {
+    if (this.storeLoadFrom('current')) {
+      this.redrawStore();
+    } else {
+      this.redrawNormal();
+    }
+  }
+
+  redrawStore() {
+    // Mettre à jour la recherche, les tri, les filtres, la pagination complète et la sélection
+    this.searchRedraw();
+    this.sortRedraw();
+    this.filterRedraw();
+    this.paginationRedraw();
+    this.selectRedraw();
+  }
+
+  redrawNormal(mode = 'full-reset') {
+    // Recalculer la page courante uniquement OU tous les filtres/recherche/tri + retour à la première page
+    this.dataApi.draw(mode);
+
+    // Stocke le nouvel état du tableau
+    this.storeSaveTo('current');
+
+    // Mettre à jour la pagination, la sélection et le nombre de lignes affichées
+    this.paginationRedraw();
+    this.selectAllUpdate();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////// Fonctions communes ///////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   hideFilterElement(fieldset, button) {
     fieldset.classList.add('fr-hidden');

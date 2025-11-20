@@ -17,9 +17,18 @@
   height: 15rem;
 }
 
-.datatable .datatable-search {
+.datatable .datatable-search-reset {
   width: 40%;
   min-width: 20rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.datatable .datatable-search-reset .fr-search-bar {
+  flex: 1;
 }
 
 .datatable .fr-cell__title {
