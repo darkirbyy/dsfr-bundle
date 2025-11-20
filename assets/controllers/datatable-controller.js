@@ -4,7 +4,7 @@ import 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5';
 import 'datatables.net-staterestore';
 import 'pdfmake';
-import '../../javascripts/vfs-marianne.js';
+import '../javascripts/vfs-marianne.js';
 
 /*
  * Ce controller qui connecte les évènements datatable aux différents boutons dsfr (pagination, recherche, export)
